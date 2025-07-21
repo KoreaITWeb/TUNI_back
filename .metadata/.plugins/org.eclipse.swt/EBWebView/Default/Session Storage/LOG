@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 2025/07/21-18:32:47.910 9e0 Reusing MANIFEST C:\1900_web_cha\TUNI\back\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Session Storage/MANIFEST-000001
 2025/07/21-18:32:47.911 9e0 Recovering log #3
 2025/07/21-18:32:47.913 9e0 Reusing old log C:\1900_web_cha\TUNI\back\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Session Storage/000003.log 
+=======
+2025/07/18-20:15:13.137 4240 Creating DB C:\WebProject\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Session Storage since it was missing.
+2025/07/18-20:15:13.149 4240 Reusing MANIFEST C:\WebProject\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Session Storage/MANIFEST-000001
+>>>>>>> branch 'main' of git@github.com:KoreaITWeb/Tuni_back.git

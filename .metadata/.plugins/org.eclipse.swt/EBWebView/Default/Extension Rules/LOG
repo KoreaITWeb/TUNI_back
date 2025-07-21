@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 2025/07/18-20:30:20.909 2950 Creating DB C:\1900_web_cha\TUNI\back\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Extension Rules since it was missing.
 2025/07/18-20:30:20.922 2950 Reusing MANIFEST C:\1900_web_cha\TUNI\back\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Extension Rules/MANIFEST-000001
+=======
+2025/07/18-20:14:50.449 33ac Creating DB C:\WebProject\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Extension Rules since it was missing.
+2025/07/18-20:14:50.478 33ac Reusing MANIFEST C:\WebProject\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Extension Rules/MANIFEST-000001
+>>>>>>> branch 'main' of git@github.com:KoreaITWeb/Tuni_back.git

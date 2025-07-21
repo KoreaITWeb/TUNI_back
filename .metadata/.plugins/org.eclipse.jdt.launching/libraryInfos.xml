@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <libraryInfos>
+<<<<<<< HEAD
     <libraryInfo home="C:\Program Files\Java\jdk-24" version="24.0.1"/>
     <libraryInfo home="C:\1900_web_cha\devtools\jdk-21.0.6" version="21.0.6"/>
+=======
+    <libraryInfo home="C:\Java\jdk-21_windows-x64_bin\jdk-21.0.8" version="21.0.8"/>
+>>>>>>> branch 'main' of git@github.com:KoreaITWeb/Tuni_back.git
 </libraryInfos>
