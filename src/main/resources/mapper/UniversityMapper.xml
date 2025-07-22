@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 연결할 인터페이스 정보를 namespace에 기술 -->
+<mapper namespace="com.project.tuni_back.mapper.UniversityMapper">
+	<select id="findByDomain" parameterType="java.lang.String" resultType="com.project.tuni_back.entity.University">
+	    SELECT s.id, s.name
+	    FROM school s
+	    JOIN domain ud ON s.id = ud.school_id
+	    WHERE ud.email = #{domain}
+	</select>
+    <select id="findById" parameterType="long" resultType="com.project.tuni_back.entity.University">
+	    SELECT *
+	    FROM school
+	    WHERE id = #{id}
+	</select>
+
+	<select id="findAll" resultType="com.project.tuni_back.entity.University">
+	    SELECT *
+	    FROM school
+	    ORDER BY name ASC
+	</select>
+	
+	<select id="findDomainsByUniversityId" parameterType="long" resultType="java.lang.String">
+	    SELECT email
+	    FROM domain
+	    WHERE school_id = #{schoolId}
+	</select>
+</mapper>

@@ -1,0 +1,118 @@
+package com.project.tuni_back.service;
+
+import java.util.List;
+import java.util.Random;
+
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.project.tuni_back.dto.JwtTokenDto;
+import com.project.tuni_back.dto.VerificationRequestDto;
+import com.project.tuni_back.entity.University;
+import com.project.tuni_back.entity.User;
+import com.project.tuni_back.jwt.JwtTokenProvider;
+import com.project.tuni_back.mapper.UniversityMapper;
+import com.project.tuni_back.mapper.UserMapper;
+
+import lombok.RequiredArgsConstructor;
+
+//AuthService
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class AuthService {
+
+	private final RedisService redisService;
+	private final EmailService emailService; 
+	private final UserMapper userMapper;   
+	private final UniversityMapper universityMapper;
+	private final JwtTokenProvider jwtTokenProvider; // JWT 생성 유틸리티 클래스
+
+	/**
+     * 모든 대학교 목록을 조회
+     */
+    public List<University> getAllUniversities() {
+        return universityMapper.findAll();
+    }
+    
+    /**
+     * 대학교-이메일 도메인 검증 후 인증 코드 발송
+     */
+    public void validateAndSendCode(Long universityId, String email) {
+        // 1. 사용자가 입력한 이메일에서 도메인 추출
+        String userDomain = email.substring(email.indexOf("@") + 1);
+
+        // 2. 선택한 대학교 ID로 허용된 도메인 목록을 DB에서 조회
+        List<String> allowedDomains = universityMapper.findDomainsByUniversityId(universityId);
+
+        // 3. 만약 해당 대학교에 등록된 도메인이 없다면 에러 처리
+        if (allowedDomains == null || allowedDomains.isEmpty()) {
+            throw new IllegalArgumentException("해당 대학교에 등록된 이메일 도메인이 없습니다.");
+        }
+
+        // 4. 사용자의 도메인이 허용된 도메인 목록에 포함되어 있는지 확인
+        // .anyMatch()는 목록 중 하나라도 일치하면 true를 반환
+        boolean isDomainValid = allowedDomains.stream()
+                .anyMatch(allowedDomain -> allowedDomain.equalsIgnoreCase(userDomain));
+        
+        if (!isDomainValid) {
+            throw new IllegalArgumentException("선택한 대학교에서 허용되지 않는 이메일 도메인입니다.");
+        }
+        
+        // 5. 검증 통과 시, 코드 발송 로직 호출
+        sendCodeToEmail(email);
+    }
+	
+	public void sendCodeToEmail(String email) {
+        // 이메일 도메인 검증은 Controller나 이전 단계에서 처리했다고 가정
+        String verificationCode = createVerificationCode();
+        emailService.sendVerificationEmail(email, verificationCode);
+        
+        // 이메일과 인증 코드를 Redis에 5분간 저장
+        redisService.setVerificationCode(email, verificationCode);
+    }
+
+    // 6자리 랜덤 인증 코드 생성
+    private String createVerificationCode() {
+        return String.format("%06d", new Random().nextInt(1000000));
+    }
+	
+	public JwtTokenDto verifyCodeAndLogin(VerificationRequestDto dto) {
+		// 1. Redis에서 인증 코드 가져오기
+		String storedCode = redisService.getVerificationCode(dto.getEmail());
+
+		// 2. 코드 검증
+		if (storedCode == null || !storedCode.equals(dto.getCode())) {
+		    throw new BadCredentialsException("인증 코드가 일치하지 않습니다.");
+		}
+
+		// 3. 사용자 조회
+		User user = userMapper.findByEmail(dto.getEmail()); // ◀️ 매퍼로 조회
+		
+		if (user == null) {
+		    // 4. [신규 회원] 사용자가 없으면 새로 생성
+			String domain = dto.getEmail().split("@")[1];
+			University university = universityMapper.findByDomain(domain); // 매퍼로 조회
+			if (university == null) {
+			    throw new IllegalArgumentException("존재하지 않는 대학 도메인입니다.");
+			}
+		
+			User newUser = new User();
+			newUser.setUser_id("testuser" + dto.getCode());
+			newUser.setId(Integer.parseInt(dto.getCode()));
+			newUser.setEmail(dto.getEmail());
+			 
+			userMapper.save(newUser);
+			user = userMapper.findByEmail(dto.getEmail()); // 저장 후 다시 조회
+		}
+		
+		// 5. JWT 생성 및 발급
+		JwtTokenDto token = jwtTokenProvider.generateToken(user.getEmail());
+		
+		// 6. 인증 완료 후 Redis의 코드 삭제
+		redisService.deleteVerificationCode(dto.getEmail());
+		
+		return token;
+	}
+}
