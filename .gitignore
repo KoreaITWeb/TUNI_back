@@ -10,11 +10,11 @@ HELP.md
 .classpath
 .factorypath
 .project
-.settings/
 .springBeans
 .sts4-cache
 .properties
 .metadata/
+.settings/
 /bin/
 /tmp/
 
