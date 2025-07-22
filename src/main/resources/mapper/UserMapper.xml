@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 연결할 인터페이스 정보를 namespace에 기술 -->
+<mapper namespace="com.project.tuni_back.mapper.UserMapper">
+	<insert id="save" parameterType="com.project.tuni_back.entity.User">
+        INSERT INTO `users` (user_id, id, email)
+        VALUES (#{user_id}, #{id}, #{email})
+    </insert>
+
+    <select id="findByEmail" resultType="com.project.tuni_back.entity.User">
+        SELECT *
+        FROM `users`
+        WHERE email = #{email}
+    </select>
+</mapper>

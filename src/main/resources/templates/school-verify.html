@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>대학교 이메일 인증</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .error { color: red; font-weight: bold; margin-bottom: 10px; }
+        select, input, button { padding: 8px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h2>대학교 이메일 인증</h2>
+    
+    <div th:if="${error}" class="error">
+        <p th:text="${error}"></p>
+    </div>
+
+    <form action="/school/verify" method="post">
+        <div>
+            <label for="university">대학교 선택:</label><br>
+            <select id="university" name="universityId" required>
+                <option value="">-- 대학교를 선택하세요 --</option>
+                <option th:each="uni : ${universities}"
+                        th:value="${uni.id}"
+                        th:text="${uni.name}">
+                </option>
+            </select>
+        </div>
+        <div style="margin-top: 15px;">
+            <label for="email">이메일 입력:</label><br>
+            <input type="email" id="email" name="email" placeholder="학교 이메일 주소" required size="30">
+        </div>
+        <div style="margin-top: 20px;">
+            <button type="submit">인증 코드 받기</button>
+        </div>
+    </form>
+</body>
+</html>
