@@ -1,0 +1,24 @@
+{
+   "epochs": [ {
+<<<<<<< HEAD
+      "calculation_time": "13397311826216592",
+      "config_version": 0,
+      "model_version": "0",
+      "padded_top_topics_start_index": 0,
+      "taxonomy_version": 0,
+      "top_topics_and_observing_domains": [  ]
+   } ],
+   "hex_encoded_hmac_key": "4BAF67C175F74F360AFA86C209EEBB227581DE9E65D79063F062650655DF9904",
+   "next_scheduled_calculation_time": "13397916626216693"
+=======
+      "calculation_time": "13397310893879904",
+      "config_version": 0,
+      "model_version": "0",
+      "padded_top_topics_start_index": 0,
+      "taxonomy_version": 0,
+      "top_topics_and_observing_domains": [  ]
+   } ],
+   "hex_encoded_hmac_key": "E4B5DB9E6693C07F2FD790E3C540093D7EBE0540693F8AF374757A101DAB678B",
+   "next_scheduled_calculation_time": "13397915693880075"
+>>>>>>> branch 'main' of git@github.com:KoreaITWeb/Tuni_back.git
+}
