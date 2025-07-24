@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 연결할 인터페이스 정보를 namespace에 기술 -->
+<mapper namespace="com.project.tuni_back.board.mapper.ImageFileMapper">
+   <insert id="insert"> 
+      INSERT INTO IMAGEFILE(UUID, UPLOADPATH, FILENAME, BOARD_ID) 
+      VALUES (#{uuid}, #{uploadPath}, #{fileName},#{boardId}) 
+   </insert>
+   <select id="getImageFile" resultType="com.project.tuni_back.board.bean.vo.ImageFileVO"> 
+      SELECT UUID, UPLOADPATH, FILENAME, BOARD_ID 
+      FROM IMAGEFILE
+      WHERE BOARD_ID = #{boardId} 
+   </select>
+   
+   
+</mapper>
