@@ -4,16 +4,16 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.project.tuni_back.entity.University;
+import com.project.tuni_back.bean.vo.UniversityVO;
 
 @Mapper
 public interface UniversityMapper {
 
     // 도메인 이름으로 대학교 정보를 찾는 메소드
-    University findByDomain(String domain);
+    UniversityVO findByDomain(String domain);
     
-    University findById(Long id);
-    List<University> findAll();
+    UniversityVO findById(Long id);
+    List<UniversityVO> findAll();
     List<String> findDomainsByUniversityId(Long schoolId);
 
 }

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.project.tuni_back.entity.University;
+import com.project.tuni_back.bean.vo.UniversityVO;
 import com.project.tuni_back.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class SchoolController {
      */
     @GetMapping("/school/verify")
     public String showVerifyForm(Model model) {
-        List<University> universities = authService.getAllUniversities();
+        List<UniversityVO> universities = authService.getAllUniversities();
         model.addAttribute("universities", universities);
         return "school-verify"; // school-verify.html 템플릿을 반환
     }

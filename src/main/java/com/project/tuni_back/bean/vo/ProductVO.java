@@ -1,4 +1,4 @@
-package com.project.tuni_back.board.bean.vo;
+package com.project.tuni_back.bean.vo;
 
 import lombok.Data;
 
@@ -9,3 +9,4 @@ public class ProductVO {
     private String description;
     private int price;
 }
+

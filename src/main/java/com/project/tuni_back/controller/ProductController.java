@@ -1,11 +1,14 @@
-package com.project.tuni_back.board.controller;
+package com.project.tuni_back.controller;
 
-import com.project.tuni_back.board.dao.ProductDAO;
-import com.project.tuni_back.board.bean.vo.ProductVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.project.tuni_back.bean.dao.ProductDAO;
+import com.project.tuni_back.bean.vo.ProductVO;
 
 @Controller
 @RequestMapping("/product")
@@ -31,4 +34,3 @@ public class ProductController {
         return "product/list";  // templates/product/list.html
     }
 }
-

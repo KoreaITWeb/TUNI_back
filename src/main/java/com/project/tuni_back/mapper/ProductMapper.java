@@ -1,9 +1,10 @@
-package com.project.tuni_back.board.mapper;
+package com.project.tuni_back.mapper;
 
-import com.project.tuni_back.board.bean.vo.ProductVO;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+
+import com.project.tuni_back.bean.vo.ProductVO;
 
 @Mapper
 public interface ProductMapper {

@@ -1,11 +1,12 @@
-package com.project.tuni_back.board.dao;
+package com.project.tuni_back.bean.dao;
 
-import com.project.tuni_back.board.mapper.ProductMapper;
-import com.project.tuni_back.board.bean.vo.ProductVO;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.project.tuni_back.bean.vo.ProductVO;
+import com.project.tuni_back.mapper.ProductMapper;
 
 @Repository
 public class ProductDAO {

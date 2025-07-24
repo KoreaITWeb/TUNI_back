@@ -7,10 +7,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.tuni_back.bean.vo.UniversityVO;
+import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.dto.JwtTokenDto;
 import com.project.tuni_back.dto.VerificationRequestDto;
-import com.project.tuni_back.entity.University;
-import com.project.tuni_back.entity.User;
 import com.project.tuni_back.jwt.JwtTokenProvider;
 import com.project.tuni_back.mapper.UniversityMapper;
 import com.project.tuni_back.mapper.UserMapper;
@@ -32,7 +32,7 @@ public class AuthService {
 	/**
      * 모든 대학교 목록을 조회
      */
-    public List<University> getAllUniversities() {
+    public List<UniversityVO> getAllUniversities() {
         return universityMapper.findAll();
     }
     
@@ -88,17 +88,17 @@ public class AuthService {
 		}
 
 		// 3. 사용자 조회
-		User user = userMapper.findByEmail(dto.getEmail()); // ◀️ 매퍼로 조회
+		UserVO user = userMapper.findByEmail(dto.getEmail()); // ◀️ 매퍼로 조회
 		
 		if (user == null) {
 		    // 4. [신규 회원] 사용자가 없으면 새로 생성
 			String domain = dto.getEmail().split("@")[1];
-			University university = universityMapper.findByDomain(domain); // 매퍼로 조회
+			UniversityVO university = universityMapper.findByDomain(domain); // 매퍼로 조회
 			if (university == null) {
 			    throw new IllegalArgumentException("존재하지 않는 대학 도메인입니다.");
 			}
 		
-			User newUser = new User();
+			UserVO newUser = new UserVO();
 			newUser.setUser_id("testuser" + dto.getCode());
 			newUser.setId(Integer.parseInt(dto.getCode()));
 			newUser.setEmail(dto.getEmail());

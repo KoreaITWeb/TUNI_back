@@ -1,9 +1,11 @@
-package com.project.tuni_back.board.service;
-    
-import com.project.tuni_back.board.bean.vo.BoardVO;
-import com.project.tuni_back.board.mapper.BoardMapper;
-import org.springframework.stereotype.Service;
+package com.project.tuni_back.service;
+
 import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.project.tuni_back.bean.vo.BoardVO;
+import com.project.tuni_back.mapper.BoardMapper;
 
 @Service
 public class BoardService {
@@ -25,4 +27,3 @@ public class BoardService {
         productMapper.insert(product);
     }
 }
-

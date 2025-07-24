@@ -2,19 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- 연결할 인터페이스 정보를 namespace에 기술 -->
 <mapper namespace="com.project.tuni_back.mapper.UniversityMapper">
-	<select id="findByDomain" parameterType="java.lang.String" resultType="com.project.tuni_back.entity.University">
+	<select id="findByDomain" parameterType="java.lang.String" resultType="com.project.tuni_back.bean.vo.UniversityVO">
 	    SELECT s.id, s.name
 	    FROM school s
 	    JOIN domain ud ON s.id = ud.school_id
 	    WHERE ud.email = #{domain}
 	</select>
-    <select id="findById" parameterType="long" resultType="com.project.tuni_back.entity.University">
+    <select id="findById" parameterType="long" resultType="com.project.tuni_back.bean.vo.UniversityVO">
 	    SELECT *
 	    FROM school
 	    WHERE id = #{id}
 	</select>
 
-	<select id="findAll" resultType="com.project.tuni_back.entity.University">
+	<select id="findAll" resultType="com.project.tuni_back.bean.vo.UniversityVO">
 	    SELECT *
 	    FROM school
 	    ORDER BY name ASC

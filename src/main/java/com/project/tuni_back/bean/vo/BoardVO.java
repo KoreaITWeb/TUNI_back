@@ -1,7 +1,6 @@
-package com.project.tuni_back.board.bean.vo;
+package com.project.tuni_back.bean.vo;
 
 import lombok.Data;
-import java.time.LocalDateTime;
 
 @Data
 public class BoardVO {

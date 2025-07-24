@@ -1,9 +1,9 @@
-package com.project.tuni_back.entity;
+package com.project.tuni_back.bean.vo;
 
 import lombok.Data;
 
 @Data
-public class User {
+public class UserVO {
 	private String user_id;
 	private int id;
 	private String email;
