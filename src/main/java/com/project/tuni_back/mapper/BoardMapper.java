@@ -8,7 +8,9 @@ import com.project.tuni_back.bean.vo.BoardVO;
 
 @Mapper
 public interface BoardMapper {
-    List<BoardVO> findAll();
-    BoardVO findById(Long id);
-    void insert(BoardVO product);
+	public List<BoardVO> getProductList(Long schoolId);
+	public BoardVO readProduct(Long boardId);
+	public int registerProduct(BoardVO vo);
+	public int removeProduct(Long boardId);
+	public int updateProduct(BoardVO vo);
 }
