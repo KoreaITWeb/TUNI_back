@@ -35,7 +35,7 @@ public class SecurityConfig {
             // 3. HTTP 요청에 대한 접근 권한 설정
             .authorizeHttpRequests(auth -> auth
                 // "/api/auth/**" 경로의 모든 요청은 인증 없이 허용
-                .requestMatchers("/**").permitAll()
+                .requestMatchers("/**", "**").permitAll()
                 // 그 외의 모든 요청은 반드시 인증을 거쳐야 함
                 .anyRequest().authenticated()
             );

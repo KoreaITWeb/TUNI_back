@@ -58,4 +58,12 @@ public class SchoolController {
         model.addAttribute("email", email);
         return "verify-code-form"; // verify-code-form.html 템플릿 반환
     }
+    
+    @GetMapping("/register-form")
+    public String showRegisterForm(@RequestParam String email, @RequestParam String code, Model model) {
+        // 이전 페이지에서 검증된 이메일과 코드를 모델에 담아 전달
+        model.addAttribute("email", email);
+        model.addAttribute("code", code);
+        return "nickname-form"; // nickname-form.html 템플릿 반환
+    }
 }

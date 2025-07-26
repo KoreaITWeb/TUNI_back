@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class UserVO {
 	private String user_id;
-	private int id;
+	private int school_id;
 	private String email;
 }
