@@ -3,11 +3,11 @@
 <!-- 연결할 인터페이스 정보를 namespace에 기술 -->
 <mapper namespace="com.project.tuni_back.mapper.ImageFileMapper">
    <insert id="insert"> 
-      INSERT INTO IMAGEFILE(UUID, UPLOADPATH, FILENAME, BOARD_ID) 
+      INSERT INTO IMAGEFILE(UUID, UPLOA_DPATH, FILE_NAME, BOARD_ID) 
       VALUES (#{uuid}, #{uploadPath}, #{fileName},#{boardId}) 
    </insert>
    <select id="getImageFile" resultType="com.project.tuni_back.bean.vo.ImageFileVO"> 
-      SELECT UUID, UPLOADPATH, FILENAME, BOARD_ID 
+      SELECT UUID, UPLOA_DPATH, FILE_NAME, BOARD_ID 
       FROM IMAGEFILE
       WHERE BOARD_ID = #{boardId} 
    </select>
