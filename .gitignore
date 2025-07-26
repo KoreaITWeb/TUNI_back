@@ -42,4 +42,9 @@ build/
 ### Custom: 충돌 방지용 설정 파일 제외 ###
 # 개인 설정 파일은 Git에서 추적하지 않도록 처리 (충돌 방지 목적)
 src/main/resources/application.yml
+<<<<<<< HEAD
 pom.xml
+target/
+
+
+

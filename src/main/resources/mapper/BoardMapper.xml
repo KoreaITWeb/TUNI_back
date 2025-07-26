@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 연결할 인터페이스 정보를 namespace에 기술 -->
+<mapper namespace="com.project.tuni_back.mapper.BoardMapper">
+   	<select id="getProductList" resultType="com.project.tuni_back.bean.vo.BoardVO"> 
+	   SELECT BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE,REGDATE, LIKES, VIEWS 
+	   FROM BOARD WHERE SCHOOL_ID = #{schoolId} 
+	</select>
+	<select id="readProduct" resultType="com.project.tuni_back.bean.vo.BoardVO"> 
+		SELECT BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE,REGDATE, LIKES, VIEWS 
+		FROM BOARD 
+		WHERE BOARD_ID = #{boardId} 
+	</select>
+	<insert id="registerProduct"> 
+		INSERT INTO BOARD(BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE) 
+		VALUES(NEXTVAL(SEQ_BOARD), #{schoolId}, #{userId}, #{title}, #{content}, #{price}) 
+	</insert>
+	<delete id="removeProduct"> 
+		DELETE FROM BOARD 
+		WHERE BOARD_ID = #{boardId} 
+	</delete>
+	<update id="updateProduct"> 
+		UPDATE BOARD 
+		SET TITLE = #{title}, CONTENT = #{content}, PRICE = #{price} 
+		WHERE BOARD_ID = #{boardId} 
+	</update>
+</mapper>

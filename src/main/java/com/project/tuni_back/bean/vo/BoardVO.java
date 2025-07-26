@@ -4,10 +4,13 @@ import lombok.Data;
 
 @Data
 public class BoardVO {
-    private Long id;
+	private Long boardId;
+    private Long schoolId;
+    private String userId;
     private String title;
-    // private String description;
-    private String userId; // DB컬럼명이 user_id면 이렇게 씀
-    private Double price;
-    private String imageUrl;
+    private String content; 
+    private String price;
+    private String regdate;
+    private Long likes;
+    private Long views;
 }
