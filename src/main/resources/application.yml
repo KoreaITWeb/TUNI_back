@@ -15,7 +15,7 @@ spring:
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/tuni
+    url: jdbc:mariadb://localhost:9988/tuni
     username: root
     password: 1234
 
