@@ -6,12 +6,12 @@
 	    SELECT s.id, s.name
 	    FROM school s
 	    JOIN domain ud ON s.id = ud.school_id
-	    WHERE ud.email = #{domain}
+	    WHERE ud.email = #{email}
 	</select>
     <select id="findById" parameterType="long" resultType="com.project.tuni_back.bean.vo.UniversityVO">
 	    SELECT *
 	    FROM school
-	    WHERE id = #{id}
+	    WHERE school_id = #{school_id}
 	</select>
 
 	<select id="findAll" resultType="com.project.tuni_back.bean.vo.UniversityVO">
@@ -23,6 +23,6 @@
 	<select id="findDomainsByUniversityId" parameterType="long" resultType="java.lang.String">
 	    SELECT email
 	    FROM domain
-	    WHERE school_id = #{schoolId}
+	    WHERE school_id = #{school_id}
 	</select>
 </mapper>
