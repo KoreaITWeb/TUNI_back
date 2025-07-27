@@ -96,7 +96,6 @@ public class AuthService {
 
         String domain = dto.getEmail().split("@")[1];
 		UniversityVO university = universityMapper.findByDomain(domain);
-        
         // 2. 신규 유저 객체 생성
         UserVO newUser = new UserVO();
         newUser.setEmail(dto.getEmail());
