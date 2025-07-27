@@ -17,7 +17,6 @@ import com.project.tuni_back.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/school")
