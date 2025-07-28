@@ -51,27 +51,39 @@ public class BoardController {
     // 이미지 업로드 관련 상수
     private static final String UPLOAD_DIR = "upload";
 
-    // 게시글 등록 (이미지 포함)
+    // 게시글 등록 (이미지 필수 - 최소 1개 이상)
     @PostMapping("register")
     public ResponseEntity<Map<String, Object>> registerProduct(
             @RequestBody BoardVO vo,
-            @RequestParam(value = "files", required = false) MultipartFile[] files) {
+            @RequestParam(value = "files", required = true) MultipartFile[] files) {
         
         Map<String, Object> response = new HashMap<>();
         
         try {
+            // 1. 이미지 필수 검증
+            if (files == null || files.length == 0 || isAllFilesEmpty(files)) {
+                response.put("success", false);
+                response.put("message", "최소 1개 이상의 이미지를 업로드해야 합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
             response.put("user", umapper.findByNickname(vo.getUserId()));
             
-            // 1. 게시글 등록
+            // 2. 게시글 등록
             if (mapper.registerProduct(vo) > 0) {
                 log.info("{}님이 글을 등록함 - 게시글 ID: {}", vo.getUserId(), vo.getBoardId());
                 
-                // 2. 이미지 파일이 있으면 업로드 처리
-                List<ImageFileVO> uploadedImages = new ArrayList<>();
-                if (files != null && files.length > 0) {
-                    uploadedImages = uploadImages(files, vo.getBoardId());
-                    log.info("게시글 {}에 {}개 이미지 업로드 완료", vo.getBoardId(), uploadedImages.size());
+                // 3. 이미지 파일 업로드 처리
+                List<ImageFileVO> uploadedImages = uploadImages(files, vo.getBoardId());
+                
+                if (uploadedImages.isEmpty()) {
+                    // 이미지 업로드 실패 시 게시글도 롤백 처리 (필요시)
+                    response.put("success", false);
+                    response.put("message", "이미지 업로드에 실패했습니다. 게시글 등록을 다시 시도해주세요.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                 }
+                
+                log.info("게시글 {}에 {}개 이미지 업로드 완료", vo.getBoardId(), uploadedImages.size());
                 
                 response.put("success", true);
                 response.put("message", "게시글이 성공적으로 등록되었습니다.");
@@ -97,7 +109,7 @@ public class BoardController {
         }
     }
 
-    // 게시글 목록 조회 (이미지 포함)
+    // 게시글 목록 조회 (대표 이미지 - 첫 번째 이미지만)
     @PostMapping("list")
     public ResponseEntity<Map<String, Object>> getProductList(
             @RequestParam("schoolId") Long schoolId, 
@@ -111,7 +123,7 @@ public class BoardController {
             // 1. 게시글 목록 조회
             List<BoardVO> boardList = mapper.getProductList(schoolId);
             
-            // 2. 각 게시글에 이미지 정보 추가
+            // 2. 각 게시글에 대표 이미지 정보 추가 (첫 번째 이미지만)
             List<Map<String, Object>> boardListWithImages = new ArrayList<>();
             
             for (BoardVO board : boardList) {
@@ -126,18 +138,23 @@ public class BoardController {
                 
                 // 해당 게시글의 이미지 목록 조회
                 List<ImageFileVO> images = imageFileMapper.getImageFile(board.getBoardId());
-                List<Map<String, Object>> imageInfoList = new ArrayList<>();
                 
-                for (ImageFileVO image : images) {
+                // 대표 이미지 (첫 번째 이미지)만 추가
+                if (!images.isEmpty()) {
+                    ImageFileVO representativeImage = images.get(0);
                     Map<String, Object> imageInfo = new HashMap<>();
-                    imageInfo.put("uuid", image.getUuid());
-                    imageInfo.put("fileName", image.getFileName());
-                    imageInfo.put("viewUrl", "/api/images/view/" + image.getUuid());
-                    imageInfoList.add(imageInfo);
+                    imageInfo.put("uuid", representativeImage.getUuid());
+                    imageInfo.put("fileName", representativeImage.getFileName());
+                    imageInfo.put("viewUrl", "/api/images/view/" + representativeImage.getBoardId() + "/0");
+                    
+                    boardInfo.put("representativeImage", imageInfo);
+                    boardInfo.put("hasImage", true);
+                } else {
+                    boardInfo.put("representativeImage", null);
+                    boardInfo.put("hasImage", false);
                 }
                 
-                boardInfo.put("images", imageInfoList);
-                boardInfo.put("imageCount", images.size());
+                boardInfo.put("totalImageCount", images.size());
                 
                 boardListWithImages.add(boardInfo);
             }
@@ -159,7 +176,7 @@ public class BoardController {
         }
     }
 
-    // 게시글 상세 조회 (이미지 포함)
+    // 게시글 상세 조회 (모든 이미지 포함)
     @PostMapping("read")
     public ResponseEntity<Map<String, Object>> readProduct(
             @RequestParam("boardId") Long boardId, 
@@ -179,16 +196,18 @@ public class BoardController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
             
-            // 2. 해당 게시글의 이미지 목록 조회
+            // 2. 해당 게시글의 모든 이미지 목록 조회
             List<ImageFileVO> images = imageFileMapper.getImageFile(boardId);
             List<Map<String, Object>> imageInfoList = new ArrayList<>();
             
-            for (ImageFileVO image : images) {
+            for (int i = 0; i < images.size(); i++) {
+                ImageFileVO image = images.get(i);
                 Map<String, Object> imageInfo = new HashMap<>();
                 imageInfo.put("uuid", image.getUuid());
                 imageInfo.put("fileName", image.getFileName());
                 imageInfo.put("uploadPath", image.getUploadPath());
-                imageInfo.put("viewUrl", "/api/images/view/" + image.getUuid());
+                imageInfo.put("index", i);
+                imageInfo.put("viewUrl", "/api/images/view/" + image.getBoardId() + "/" + i);
                 imageInfoList.add(imageInfo);
             }
             
@@ -212,7 +231,7 @@ public class BoardController {
         }
     }
     
-    // 게시글 삭제
+    // 게시글 삭제 (관련된 모든 이미지도 함께 삭제)
     @DeleteMapping("remove/{boardId}")
     public ResponseEntity<Map<String, Object>> removeProduct(@PathVariable("boardId") Long boardId) {
         
@@ -221,19 +240,40 @@ public class BoardController {
         try {
             log.info("게시글 삭제 요청 - boardId: {}", boardId);
             
-            // 게시글 삭제 실행 (이미지는 DB 외래키 제약조건으로 자동 삭제 또는 별도 처리 필요)
+            // 1. 삭제할 게시글의 이미지 목록 조회
+            List<ImageFileVO> imagesToDelete = imageFileMapper.getImageFile(boardId);
+            
+            // 2. 게시글 삭제 실행
             int deleteResult = mapper.removeProduct(boardId);
             
             if (deleteResult > 0) {
-                response.put("success", true);
-                response.put("message", "글 삭제에 성공하였습니다.");
-                response.put("deletedBoardId", boardId);
+                // 3. 관련된 이미지 파일들을 물리적으로 삭제
+                int deletedImageCount = 0;
+                for (ImageFileVO image : imagesToDelete) {
+                    try {
+                        Path imagePath = getImagePath(image.getFileName());
+                        if (Files.exists(imagePath)) {
+                            Files.delete(imagePath);
+                            deletedImageCount++;
+                            log.info("이미지 파일 삭제 완료 - 파일명: {}", image.getFileName());
+                        }
+                    } catch (Exception e) {
+                        log.warn("이미지 파일 삭제 실패 - 파일명: {}, 오류: {}", 
+                                image.getFileName(), e.getMessage());
+                    }
+                }
                 
-                log.info("게시글 삭제 성공 - boardId: {}", boardId);
+                response.put("success", true);
+                response.put("message", "글과 관련 이미지가 모두 삭제되었습니다.");
+                response.put("deletedBoardId", boardId);
+                response.put("deletedImageCount", deletedImageCount);
+                response.put("totalImageCount", imagesToDelete.size());
+                
+                log.info("게시글 삭제 성공 - boardId: {}, 삭제된 이미지: {}개", boardId, deletedImageCount);
                 return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);
-                response.put("message", "실패하였습니다.");
+                response.put("message", "게시글 삭제에 실패했습니다.");
                 
                 log.warn("게시글 삭제 실패 - boardId: {}", boardId);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -248,7 +288,7 @@ public class BoardController {
         }
     }
     
-    // 게시글 수정 (이미지 포함)
+    // 게시글 수정 (이미지 필수 - 최소 1개 이상 유지)
     @PostMapping("update")
     public ResponseEntity<Map<String, Object>> updateProduct(
             @RequestBody BoardVO vo,
@@ -259,26 +299,45 @@ public class BoardController {
         try {
             log.info("게시글 수정 요청 - boardId: {}, title: '{}'", vo.getBoardId(), vo.getTitle());
             
-            // 1. 게시글 수정 실행
+            // 1. 현재 게시글의 기존 이미지 개수 확인
+            List<ImageFileVO> existingImages = imageFileMapper.getImageFile(vo.getBoardId());
+            int existingImageCount = existingImages.size();
+            
+            // 2. 새로 업로드할 이미지 개수 확인
+            int newImageCount = 0;
+            if (files != null && files.length > 0 && !isAllFilesEmpty(files)) {
+                newImageCount = countValidImages(files);
+            }
+            
+            // 3. 최소 1개 이상의 이미지가 있는지 확인
+            if (existingImageCount == 0 && newImageCount == 0) {
+                response.put("success", false);
+                response.put("message", "게시글에는 최소 1개 이상의 이미지가 있어야 합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
+            // 4. 게시글 수정 실행
             int updateResult = mapper.updateProduct(vo);
             
             if (updateResult > 0) {
-                // 2. 새로운 이미지 파일이 있으면 업로드 처리
+                // 5. 새로운 이미지 파일이 있으면 업로드 처리
                 List<ImageFileVO> uploadedImages = new ArrayList<>();
                 if (files != null && files.length > 0) {
                     uploadedImages = uploadImages(files, vo.getBoardId());
                     log.info("게시글 {}에 {}개 이미지 추가 업로드 완료", vo.getBoardId(), uploadedImages.size());
                 }
                 
-                // 3. 현재 게시글의 모든 이미지 목록 조회
+                // 6. 현재 게시글의 모든 이미지 목록 조회 (기존 + 새로 업로드)
                 List<ImageFileVO> allImages = imageFileMapper.getImageFile(vo.getBoardId());
                 List<Map<String, Object>> imageInfoList = new ArrayList<>();
                 
-                for (ImageFileVO image : allImages) {
+                for (int i = 0; i < allImages.size(); i++) {
+                    ImageFileVO image = allImages.get(i);
                     Map<String, Object> imageInfo = new HashMap<>();
                     imageInfo.put("uuid", image.getUuid());
                     imageInfo.put("fileName", image.getFileName());
-                    imageInfo.put("viewUrl", "/api/images/view/" + image.getUuid());
+                    imageInfo.put("index", i);
+                    imageInfo.put("viewUrl", "/api/images/view/" + image.getBoardId() + "/" + i);
                     imageInfoList.add(imageInfo);
                 }
                 
@@ -289,9 +348,10 @@ public class BoardController {
                 response.put("newUploadedImages", uploadedImages);
                 response.put("allImages", imageInfoList);
                 response.put("totalImageCount", allImages.size());
+                response.put("newImageCount", uploadedImages.size());
                 
-                log.info("게시글 수정 성공 - boardId: {}, title: '{}', 전체 이미지: {}개", 
-                        vo.getBoardId(), vo.getTitle(), allImages.size());
+                log.info("게시글 수정 성공 - boardId: {}, title: '{}', 전체 이미지: {}개, 새 이미지: {}개", 
+                        vo.getBoardId(), vo.getTitle(), allImages.size(), uploadedImages.size());
                 
                 return ResponseEntity.ok(response);
             } else {
@@ -401,5 +461,45 @@ public class BoardController {
             return ".jpg";
         }
         return fileName.substring(fileName.lastIndexOf("."));
+    }
+    
+    // 이미지 파일 경로 가져오기 (삭제용)
+    private Path getImagePath(String fileName) throws Exception {
+        try {
+            File resourcesDir = ResourceUtils.getFile("classpath:");
+            return Paths.get(resourcesDir.getAbsolutePath(), UPLOAD_DIR, fileName);
+        } catch (Exception e) {
+            String projectPath = System.getProperty("user.dir");
+            return Paths.get(projectPath, "src", "main", "resources", UPLOAD_DIR, fileName);
+        }
+    }
+    
+    // 모든 파일이 비어있는지 확인
+    private boolean isAllFilesEmpty(MultipartFile[] files) {
+        if (files == null || files.length == 0) {
+            return true;
+        }
+        
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // 유효한 이미지 파일 개수 계산
+    private int countValidImages(MultipartFile[] files) {
+        if (files == null || files.length == 0) {
+            return 0;
+        }
+        
+        int count = 0;
+        for (MultipartFile file : files) {
+            if (!file.isEmpty() && isImageFile(file)) {
+                count++;
+            }
+        }
+        return count;
     }
 }
