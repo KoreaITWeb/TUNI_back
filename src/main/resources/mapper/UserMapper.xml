@@ -4,7 +4,7 @@
 <mapper namespace="com.project.tuni_back.mapper.UserMapper">
 	<insert id="save" parameterType="com.project.tuni_back.bean.vo.UserVO">
         INSERT INTO `users` (user_id, school_id, email)
-        VALUES (#{user_id}, #{school_id}, #{email})
+        VALUES (#{userId}, #{schoolId}, #{email})
     </insert>
 
     <select id="findByEmail" resultType="com.project.tuni_back.bean.vo.UserVO">

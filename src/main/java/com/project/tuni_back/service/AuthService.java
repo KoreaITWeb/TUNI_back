@@ -89,7 +89,7 @@ public class AuthService {
     // 신규 회원 가입
     public JwtTokenDto registerNewUser(RegisterRequestDto dto) {
         // 1. 닉네임 중복 확인
-        UserVO existingUserByNickname = userMapper.findByNickname(dto.getUser_id());
+        UserVO existingUserByNickname = userMapper.findByNickname(dto.getUserId());
         if (existingUserByNickname != null) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }
@@ -99,7 +99,7 @@ public class AuthService {
         // 2. 신규 유저 객체 생성
         UserVO newUser = new UserVO();
         newUser.setEmail(dto.getEmail());
-        newUser.setUserId(dto.getUser_id()); // 입력받은 닉네임으로 설정
+        newUser.setUserId(dto.getUserId()); // 입력받은 닉네임으로 설정
         newUser.setSchoolId(university.getSchoolId());
         
         userMapper.save(newUser);

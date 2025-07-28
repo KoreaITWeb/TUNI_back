@@ -80,7 +80,7 @@ public class AuthController {
      */
     @PostMapping("/register")
     public ResponseEntity<JwtTokenDto> register(@RequestBody RegisterRequestDto dto) {
-        authService.verifyCode(dto); // 최종 가입 전 코드 재검증
+    	authService.verifyCode(dto); // 최종 가입 전 코드 재검증
         JwtTokenDto token = authService.registerNewUser(dto);
         return ResponseEntity.ok(token);
     }
