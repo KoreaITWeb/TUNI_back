@@ -26,17 +26,17 @@ public class BoardController {
 	
 	@GetMapping("register")
 	public void register2(Model model, String userId) {
-		model.addAttribute("user", umapper.getUser(userId));
+		model.addAttribute("user", umapper.findByNickname(userId));
 	}
 	
 	@PostMapping("register")
 	public String register(BoardVO vo,String userId,Model model, RedirectAttributes rttr) {
-		model.addAttribute("user", umapper.getUser(userId));
+		model.addAttribute("user", umapper.findByNickname(userId));
 		if(mapper.registerProduct(vo) > 0) {
 			log.info(vo.getUserId() + "님이 글을 등록함");
 			
 		}
-		rttr.addAttribute("id", umapper.getUser(userId).getId());
+		rttr.addAttribute("id", umapper.findByNickname(userId).getUser_id());
 		rttr.addAttribute("userId", userId);
 		return "redirect:/board/list";
 	}
@@ -47,14 +47,14 @@ public class BoardController {
 	@GetMapping("list")
 	public void list(Long schoolId,String userId, Model model){
 		log.info("List on");
-		model.addAttribute("user", umapper.getUser(userId));
+		model.addAttribute("user", umapper.findByNickname(userId));
 		model.addAttribute("list", mapper.getProductList(schoolId));
 	}
 	@GetMapping("read")
 	public void read(Long boardId, String userId, Model model) {
 		log.info("read on");
 		log.info("read : " + mapper.readProduct(boardId));
-		model.addAttribute("user", umapper.getUser(userId));
+		model.addAttribute("user", umapper.findByNickname(userId));
 		model.addAttribute("read", mapper.readProduct(boardId));
 	}
 }

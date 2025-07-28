@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<h1 th:text="${read}"></h1>
+	<a th:href="@{/board/list(id=${user.id}, userId=${user.userId})}" 
+                   class="select-link">돌아가기</a>
+</body>
+</html>
