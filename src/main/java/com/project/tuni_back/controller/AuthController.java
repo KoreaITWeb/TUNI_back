@@ -63,6 +63,11 @@ public class AuthController {
         Map<String, Object> response = new HashMap<>();
         response.put("isNewUser", isNewUser);
         response.put("message", "코드 인증에 성공했습니다.");
+        if (!isNewUser) {
+        	response.put("token", authService.loginExistingUser(dto));
+        	//response.put("nickname", user.getUserId());
+            return ResponseEntity.ok(response);
+        }
         return ResponseEntity.ok(response);
     }
     

@@ -1,8 +1,0 @@
-<<<<<<< HEAD
-2025/07/21-18:32:47.684 3120 Reusing MANIFEST C:\1900_web_cha\TUNI\back\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Site Characteristics Database/MANIFEST-000001
-2025/07/21-18:32:47.690 3120 Recovering log #3
-2025/07/21-18:32:47.690 3120 Reusing old log C:\1900_web_cha\TUNI\back\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Site Characteristics Database/000003.log 
-=======
-2025/07/18-20:14:50.377 4524 Creating DB C:\WebProject\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Site Characteristics Database since it was missing.
-2025/07/18-20:14:50.418 4524 Reusing MANIFEST C:\WebProject\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Site Characteristics Database/MANIFEST-000001
->>>>>>> branch 'main' of git@github.com:KoreaITWeb/Tuni_back.git
