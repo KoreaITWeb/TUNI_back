@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<form action="/board/register" method="post">
+		<table border=1>
+			<tr><td>title</td><td><input type="text" name="title"></td></tr>
+			<tr><td>content</td><td><input type="text" name="content"></td></tr>
+		</table>
+		<input type="hidden" name="userId" th:value="${user.userId}">
+		<input type="hidden" name="id" th:value="${user.id}">
+		<button>Register</button>
+	</form>
+</body>
+</html>
