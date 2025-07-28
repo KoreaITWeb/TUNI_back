@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -88,5 +89,19 @@ public class AuthController {
     	authService.verifyCode(dto); // 최종 가입 전 코드 재검증
         JwtTokenDto token = authService.registerNewUser(dto);
         return ResponseEntity.ok(token);
+    }
+    
+    @GetMapping("/mypage")
+    public ResponseEntity<UserVO> getMyPage(@RequestParam("userId") String userId) {
+        UserVO user = authService.getUserByUserId(userId);
+        return ResponseEntity.ok(user);
+    }
+    
+    @PutMapping("/mypage")
+    public ResponseEntity<?> updateUserId(
+            @RequestParam String oldUserId, 
+            @RequestParam String newUserId) {
+        authService.updateUserId(oldUserId, newUserId);
+        return ResponseEntity.ok().build();
     }
 }
