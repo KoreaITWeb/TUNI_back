@@ -64,7 +64,7 @@ public class BoardController {
 
     // 게시글 목록 조회
     @PostMapping("list")
-    public ResponseEntity<Map<String, Object>> getProductList(@RequestParam("schoolId") Long schoolId, @RequestParam("userId") String userId) {
+    public ResponseEntity<Map<String, Object>> getProductList(@RequestParam Long schoolId, @RequestParam String userId) {
         log.info("List on");
         
         try {
