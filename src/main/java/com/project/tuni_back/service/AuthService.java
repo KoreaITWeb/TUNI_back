@@ -36,6 +36,20 @@ public class AuthService {
         return universityMapper.findAll();
     }
     
+    // 6자리 랜덤 인증 코드 생성
+    private String createVerificationCode() {
+        return String.format("%06d", new Random().nextInt(1000000));
+    }
+    
+    // 이메일 전송 로직
+	public void sendCodeToEmail(String email) {
+        String verificationCode = createVerificationCode();
+        emailService.sendVerificationEmail(email, verificationCode);
+        
+        // 이메일과 인증 코드를 Redis에 5분간 저장
+        redisService.setVerificationCode(email, verificationCode);
+    }
+    
     /**
      * 대학교-이메일 도메인 검증 후 인증 코드 발송
      */
@@ -64,26 +78,18 @@ public class AuthService {
         sendCodeToEmail(email);
     }
 	
-	public void sendCodeToEmail(String email) {
-        // 이메일 도메인 검증은 Controller나 이전 단계에서 처리했다고 가정
-        String verificationCode = createVerificationCode();
-        emailService.sendVerificationEmail(email, verificationCode);
-        
-        // 이메일과 인증 코드를 Redis에 5분간 저장
-        redisService.setVerificationCode(email, verificationCode);
-    }
-
-    // 6자리 랜덤 인증 코드 생성
-    private String createVerificationCode() {
-        return String.format("%06d", new Random().nextInt(1000000));
-    }
-	
+    // 코드 검증
     public boolean verifyCode(RegisterRequestDto dto) {
         String storedCode = redisService.getVerificationCode(dto.getEmail());
         if (storedCode == null || !storedCode.equals(dto.getCode())) {
             throw new BadCredentialsException("인증 코드가 일치하지 않습니다.");
         }
-        return true; // 코드 일치
+        return true;
+    }
+    
+    // 닉네임 중복 확인
+    public boolean isNicknameAvailable(String nickname) {
+        return userMapper.findByNickname(nickname) == null;
     }
     
     // 신규 회원 가입
@@ -106,56 +112,54 @@ public class AuthService {
 
         // 3. 가입 완료 후 Redis 코드 삭제 및 JWT 발급
         redisService.deleteVerificationCode(dto.getEmail());
-        return jwtTokenProvider.generateToken(dto.getEmail());
+        return jwtTokenProvider.generateToken(newUser);
     }
     
     // 기존 유저 로그인
     public JwtTokenDto loginExistingUser(RegisterRequestDto dto) {
         // Redis 코드는 이미 verifyCode에서 검증되었으므로 여기서는 삭제만 진행
         redisService.deleteVerificationCode(dto.getEmail());
-        return jwtTokenProvider.generateToken(dto.getEmail());
+        // 이메일로 유저 찾기
+        UserVO user = userMapper.findByEmail(dto.getEmail());
+        return jwtTokenProvider.generateToken(user);
     }
     
-	public JwtTokenDto verifyCodeAndLogin(RegisterRequestDto dto) {
-		// 1. Redis에서 인증 코드 가져오기
-		String storedCode = redisService.getVerificationCode(dto.getEmail());
-
-		// 2. 코드 검증
-		if (storedCode == null || !storedCode.equals(dto.getCode())) {
-		    throw new BadCredentialsException("인증 코드가 일치하지 않습니다.");
-		}
-
-		// 3. 사용자 조회
-		UserVO user = userMapper.findByEmail(dto.getEmail()); // ◀️ 매퍼로 조회
-		
-		if (user == null) {
-		    // 4. [신규 회원] 사용자가 없으면 새로 생성
-			String domain = dto.getEmail().split("@")[1];
-			UniversityVO university = universityMapper.findByDomain(domain); // 매퍼로 조회
-			if (university == null) {
-			    throw new IllegalArgumentException("존재하지 않는 대학 도메인입니다.");
-			}
-		
-			UserVO newUser = new UserVO();
-			newUser.setUserId("testuser" + dto.getCode());
-			newUser.setSchoolId(university.getSchoolId());
-			newUser.setEmail(dto.getEmail());
-			 
-			userMapper.save(newUser);
-			user = userMapper.findByEmail(dto.getEmail()); // 저장 후 다시 조회
-		}
-		
-		// 5. JWT 생성 및 발급
-		JwtTokenDto token = jwtTokenProvider.generateToken(user.getEmail());
-		
-		// 6. 인증 완료 후 Redis의 코드 삭제
-		redisService.deleteVerificationCode(dto.getEmail());
-		
-		return token;
-	}
-	
-	public boolean isNicknameAvailable(String nickname) {
-        return userMapper.findByNickname(nickname) == null;
-    }
-
+//	public JwtTokenDto verifyCodeAndLogin(RegisterRequestDto dto) {
+//		// 1. Redis에서 인증 코드 가져오기
+//		String storedCode = redisService.getVerificationCode(dto.getEmail());
+//
+//		// 2. 코드 검증
+//		if (storedCode == null || !storedCode.equals(dto.getCode())) {
+//		    throw new BadCredentialsException("인증 코드가 일치하지 않습니다.");
+//		}
+//
+//		// 3. 사용자 조회
+//		UserVO user = userMapper.findByEmail(dto.getEmail()); // ◀️ 매퍼로 조회
+//		
+//		if (user == null) {
+//		    // 4. [신규 회원] 사용자가 없으면 새로 생성
+//			String domain = dto.getEmail().split("@")[1];
+//			UniversityVO university = universityMapper.findByDomain(domain); // 매퍼로 조회
+//			if (university == null) {
+//			    throw new IllegalArgumentException("존재하지 않는 대학 도메인입니다.");
+//			}
+//		
+//			UserVO newUser = new UserVO();
+//			newUser.setUserId("testuser" + dto.getCode());
+//			newUser.setSchoolId(university.getSchoolId());
+//			newUser.setEmail(dto.getEmail());
+//			 
+//			userMapper.save(newUser);
+//			user = userMapper.findByEmail(dto.getEmail()); // 저장 후 다시 조회
+//		}
+//		
+//		// 5. JWT 생성 및 발급
+//		JwtTokenDto token = jwtTokenProvider.generateToken(user.getEmail());
+//		
+//		// 6. 인증 완료 후 Redis의 코드 삭제
+//		redisService.deleteVerificationCode(dto.getEmail());
+//		
+//		return token;
+//	}
+    
 }

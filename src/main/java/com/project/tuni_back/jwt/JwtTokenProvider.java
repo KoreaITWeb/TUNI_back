@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.dto.JwtTokenDto;
 
 import io.jsonwebtoken.Claims;
@@ -48,14 +49,16 @@ public class JwtTokenProvider {
     /**
      * Access Token과 Refresh Token을 생성
      */
-    public JwtTokenDto generateToken(String email) {
+    public JwtTokenDto generateToken(UserVO user) {
         long now = (new Date()).getTime();
 
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + accessTokenValidityInMilliseconds);
         String accessToken = Jwts.builder()
-                .setSubject(email)
+                .setSubject(user.getEmail())
                 .claim("auth", "ROLE_USER") // 권한 설정
+                .claim("userId", user.getUserId())
+                .claim("schoolId", user.getSchoolId())
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
