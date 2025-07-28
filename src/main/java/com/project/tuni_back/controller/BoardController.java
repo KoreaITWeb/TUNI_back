@@ -1,11 +1,22 @@
 package com.project.tuni_back.controller;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,9 +24,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.project.tuni_back.bean.vo.BoardVO;
+import com.project.tuni_back.bean.vo.ImageFileVO;
 import com.project.tuni_back.mapper.BoardMapper;
+import com.project.tuni_back.mapper.ImageFileMapper;
 import com.project.tuni_back.mapper.UserMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,21 +44,42 @@ public class BoardController {
 
     @Autowired
     private UserMapper umapper;
+    
+    @Autowired
+    private ImageFileMapper imageFileMapper;
+    
+    // 이미지 업로드 관련 상수
+    private static final String UPLOAD_DIR = "upload";
 
-    // 게시글 등록
+    // 게시글 등록 (이미지 포함)
     @PostMapping("register")
-    public ResponseEntity<Map<String, Object>> registerProduct(@RequestBody BoardVO vo) {
+    public ResponseEntity<Map<String, Object>> registerProduct(
+            @RequestBody BoardVO vo,
+            @RequestParam(value = "files", required = false) MultipartFile[] files) {
+        
         Map<String, Object> response = new HashMap<>();
         
         try {
             response.put("user", umapper.findByNickname(vo.getUserId()));
             
+            // 1. 게시글 등록
             if (mapper.registerProduct(vo) > 0) {
-                log.info("{}님이 글을 등록함", vo.getUserId());
+                log.info("{}님이 글을 등록함 - 게시글 ID: {}", vo.getUserId(), vo.getBoardId());
+                
+                // 2. 이미지 파일이 있으면 업로드 처리
+                List<ImageFileVO> uploadedImages = new ArrayList<>();
+                if (files != null && files.length > 0) {
+                    uploadedImages = uploadImages(files, vo.getBoardId());
+                    log.info("게시글 {}에 {}개 이미지 업로드 완료", vo.getBoardId(), uploadedImages.size());
+                }
+                
                 response.put("success", true);
                 response.put("message", "게시글이 성공적으로 등록되었습니다.");
+                response.put("boardId", vo.getBoardId());
                 response.put("userId", vo.getUserId());
                 response.put("userInfo", umapper.findByNickname(vo.getUserId()));
+                response.put("uploadedImages", uploadedImages);
+                response.put("imageCount", uploadedImages.size());
                 
                 return ResponseEntity.ok(response);
             } else {
@@ -54,7 +89,7 @@ public class BoardController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
         } catch (Exception e) {
-            log.error("게시글 등록 실패: {}", e.getMessage());
+            log.error("게시글 등록 실패: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "게시글 등록 중 오류가 발생했습니다.");
             
@@ -62,20 +97,60 @@ public class BoardController {
         }
     }
 
-    // 게시글 목록 조회
+    // 게시글 목록 조회 (이미지 포함)
     @PostMapping("list")
-    public ResponseEntity<Map<String, Object>> getProductList(@RequestParam Long schoolId, @RequestParam String userId) {
-        log.info("List on");
+    public ResponseEntity<Map<String, Object>> getProductList(
+            @RequestParam("schoolId") Long schoolId, 
+            @RequestParam("userId") String userId) {
+        
+        log.info("게시글 목록 조회 - schoolId: {}, userId: {}", schoolId, userId);
         
         try {
             Map<String, Object> response = new HashMap<>();
+            
+            // 1. 게시글 목록 조회
+            List<BoardVO> boardList = mapper.getProductList(schoolId);
+            
+            // 2. 각 게시글에 이미지 정보 추가
+            List<Map<String, Object>> boardListWithImages = new ArrayList<>();
+            
+            for (BoardVO board : boardList) {
+                Map<String, Object> boardInfo = new HashMap<>();
+                boardInfo.put("boardId", board.getBoardId());
+                boardInfo.put("title", board.getTitle());
+                boardInfo.put("content", board.getContent());
+                boardInfo.put("userId", board.getUserId());
+                boardInfo.put("price", board.getPrice());
+                
+                // 기타 BoardVO 필드들...
+                
+                // 해당 게시글의 이미지 목록 조회
+                List<ImageFileVO> images = imageFileMapper.getImageFile(board.getBoardId());
+                List<Map<String, Object>> imageInfoList = new ArrayList<>();
+                
+                for (ImageFileVO image : images) {
+                    Map<String, Object> imageInfo = new HashMap<>();
+                    imageInfo.put("uuid", image.getUuid());
+                    imageInfo.put("fileName", image.getFileName());
+                    imageInfo.put("viewUrl", "/api/images/view/" + image.getUuid());
+                    imageInfoList.add(imageInfo);
+                }
+                
+                boardInfo.put("images", imageInfoList);
+                boardInfo.put("imageCount", images.size());
+                
+                boardListWithImages.add(boardInfo);
+            }
+            
             response.put("user", umapper.findByNickname(userId));
-            response.put("list", mapper.getProductList(schoolId));
+            response.put("list", boardListWithImages);
             response.put("success", true);
             
+            log.info("게시글 목록 조회 성공 - 총 {}개 게시글", boardListWithImages.size());
             return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            log.error("게시글 목록 조회 실패: {}", e.getMessage());
+            log.error("게시글 목록 조회 실패: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "게시글 목록 조회에 실패했습니다.");
@@ -84,23 +159,51 @@ public class BoardController {
         }
     }
 
-    // 게시글 상세 조회
+    // 게시글 상세 조회 (이미지 포함)
     @PostMapping("read")
-    public ResponseEntity<Map<String, Object>> readProduct(@RequestParam Long boardId, @RequestParam String userId) {
-        log.info("read on");
+    public ResponseEntity<Map<String, Object>> readProduct(
+            @RequestParam("boardId") Long boardId, 
+            @RequestParam("userId") String userId) {
+        
+        log.info("게시글 상세 조회 - boardId: {}, userId: {}", boardId, userId);
         
         try {
+            // 1. 게시글 정보 조회
             BoardVO boardData = mapper.readProduct(boardId);
-            log.info("read : {}", boardData);
+            log.info("게시글 조회 결과: {}", boardData);
+            
+            if (boardData == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "존재하지 않는 게시글입니다.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            }
+            
+            // 2. 해당 게시글의 이미지 목록 조회
+            List<ImageFileVO> images = imageFileMapper.getImageFile(boardId);
+            List<Map<String, Object>> imageInfoList = new ArrayList<>();
+            
+            for (ImageFileVO image : images) {
+                Map<String, Object> imageInfo = new HashMap<>();
+                imageInfo.put("uuid", image.getUuid());
+                imageInfo.put("fileName", image.getFileName());
+                imageInfo.put("uploadPath", image.getUploadPath());
+                imageInfo.put("viewUrl", "/api/images/view/" + image.getUuid());
+                imageInfoList.add(imageInfo);
+            }
             
             Map<String, Object> response = new HashMap<>();
             response.put("user", umapper.findByNickname(userId));
             response.put("board", boardData);
+            response.put("images", imageInfoList);
+            response.put("imageCount", images.size());
             response.put("success", true);
             
+            log.info("게시글 상세 조회 성공 - boardId: {}, 이미지 수: {}개", boardId, images.size());
             return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            log.error("게시글 조회 실패: {}", e.getMessage());
+            log.error("게시글 조회 실패: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "게시글 조회에 실패했습니다.");
@@ -109,15 +212,16 @@ public class BoardController {
         }
     }
     
+    // 게시글 삭제
     @DeleteMapping("remove/{boardId}")
-    public ResponseEntity<Map<String, Object>> removeProduct(@PathVariable Long boardId) {
+    public ResponseEntity<Map<String, Object>> removeProduct(@PathVariable("boardId") Long boardId) {
         
         Map<String, Object> response = new HashMap<>();
         
         try {
             log.info("게시글 삭제 요청 - boardId: {}", boardId);
             
-            // 게시글 삭제 실행
+            // 게시글 삭제 실행 (이미지는 DB 외래키 제약조건으로 자동 삭제 또는 별도 처리 필요)
             int deleteResult = mapper.removeProduct(boardId);
             
             if (deleteResult > 0) {
@@ -144,25 +248,50 @@ public class BoardController {
         }
     }
     
+    // 게시글 수정 (이미지 포함)
     @PostMapping("update")
-    public ResponseEntity<Map<String, Object>> updateProduct(@RequestBody BoardVO vo) {
+    public ResponseEntity<Map<String, Object>> updateProduct(
+            @RequestBody BoardVO vo,
+            @RequestParam(value = "files", required = false) MultipartFile[] files) {
         
         Map<String, Object> response = new HashMap<>();
         
         try {
             log.info("게시글 수정 요청 - boardId: {}, title: '{}'", vo.getBoardId(), vo.getTitle());
             
-            // 게시글 수정 실행
+            // 1. 게시글 수정 실행
             int updateResult = mapper.updateProduct(vo);
             
             if (updateResult > 0) {
+                // 2. 새로운 이미지 파일이 있으면 업로드 처리
+                List<ImageFileVO> uploadedImages = new ArrayList<>();
+                if (files != null && files.length > 0) {
+                    uploadedImages = uploadImages(files, vo.getBoardId());
+                    log.info("게시글 {}에 {}개 이미지 추가 업로드 완료", vo.getBoardId(), uploadedImages.size());
+                }
+                
+                // 3. 현재 게시글의 모든 이미지 목록 조회
+                List<ImageFileVO> allImages = imageFileMapper.getImageFile(vo.getBoardId());
+                List<Map<String, Object>> imageInfoList = new ArrayList<>();
+                
+                for (ImageFileVO image : allImages) {
+                    Map<String, Object> imageInfo = new HashMap<>();
+                    imageInfo.put("uuid", image.getUuid());
+                    imageInfo.put("fileName", image.getFileName());
+                    imageInfo.put("viewUrl", "/api/images/view/" + image.getUuid());
+                    imageInfoList.add(imageInfo);
+                }
+                
                 response.put("success", true);
                 response.put("message", "글이 수정되었습니다.");
                 response.put("updatedBoardId", vo.getBoardId());
                 response.put("updatedBoard", vo);
+                response.put("newUploadedImages", uploadedImages);
+                response.put("allImages", imageInfoList);
+                response.put("totalImageCount", allImages.size());
                 
-                log.info("게시글 수정 성공 - boardId: {}, title: '{}'", 
-                        vo.getBoardId(), vo.getTitle());
+                log.info("게시글 수정 성공 - boardId: {}, title: '{}', 전체 이미지: {}개", 
+                        vo.getBoardId(), vo.getTitle(), allImages.size());
                 
                 return ResponseEntity.ok(response);
             } else {
@@ -182,5 +311,95 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-  
+    
+    // 이미지 업로드 공통 메서드
+    private List<ImageFileVO> uploadImages(MultipartFile[] files, Long boardId) throws Exception {
+        List<ImageFileVO> uploadedImages = new ArrayList<>();
+        
+        if (files == null || files.length == 0) {
+            return uploadedImages;
+        }
+        
+        for (MultipartFile file : files) {
+            try {
+                if (!file.isEmpty() && isImageFile(file)) {
+                    ImageFileVO imageFileVO = saveImageFile(file, boardId);
+                    uploadedImages.add(imageFileVO);
+                    log.info("이미지 업로드 성공: {}", imageFileVO.getFileName());
+                }
+            } catch (Exception e) {
+                log.error("개별 이미지 업로드 실패 - 파일명: {}, 오류: {}", file.getOriginalFilename(), e.getMessage());
+                // 개별 이미지 실패해도 다른 이미지들은 계속 처리
+            }
+        }
+        
+        return uploadedImages;
+    }
+    
+    // 개별 이미지 파일 저장 및 DB 저장
+    private ImageFileVO saveImageFile(MultipartFile file, Long boardId) throws Exception {
+        // 1. 업로드 디렉토리 경로 가져오기
+        Path uploadPath = getUploadPath();
+        
+        // 2. UUID 생성
+        String uuid = UUID.randomUUID().toString();
+        
+        // 3. 파일명 생성
+        String originalFileName = file.getOriginalFilename();
+        String fileExtension = getFileExtension(originalFileName);
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String savedFileName = String.format("%s_%s%s", timestamp, uuid.substring(0, 8), fileExtension);
+        
+        // 4. 파일을 디스크에 저장
+        Path targetLocation = uploadPath.resolve(savedFileName);
+        Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+        
+        // 5. DB에 이미지 정보 저장
+        ImageFileVO imageFileVO = new ImageFileVO();
+        imageFileVO.setUuid(uuid);
+        imageFileVO.setUploadPath(UPLOAD_DIR);
+        imageFileVO.setFileName(savedFileName);
+        imageFileVO.setBoardId(boardId);
+        
+        imageFileMapper.insert(imageFileVO);
+        
+        return imageFileVO;
+    }
+    
+    // resources/upload 경로 가져오기 및 디렉토리 생성
+    private Path getUploadPath() throws Exception {
+        try {
+            File resourcesDir = ResourceUtils.getFile("classpath:");
+            Path uploadPath = Paths.get(resourcesDir.getAbsolutePath(), UPLOAD_DIR);
+            
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            
+            return uploadPath;
+        } catch (Exception e) {
+            String projectPath = System.getProperty("user.dir");
+            Path uploadPath = Paths.get(projectPath, "src", "main", "resources", UPLOAD_DIR);
+            
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            
+            return uploadPath;
+        }
+    }
+    
+    // 이미지 파일인지 확인
+    private boolean isImageFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
+    }
+    
+    // 파일 확장자 추출
+    private String getFileExtension(String fileName) {
+        if (fileName == null || fileName.lastIndexOf(".") == -1) {
+            return ".jpg";
+        }
+        return fileName.substring(fileName.lastIndexOf("."));
+    }
 }
