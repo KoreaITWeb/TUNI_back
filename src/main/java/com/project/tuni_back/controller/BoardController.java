@@ -30,7 +30,7 @@ public class BoardController {
     private UserMapper umapper;
 
     // 게시글 등록 페이지 정보 조회
-    @PostMapping("register")
+    @PostMapping("register/info")
     public ResponseEntity<Map<String, Object>> getRegisterInfo(@RequestParam String userId) {
         try {
             Map<String, Object> response = new HashMap<>();
