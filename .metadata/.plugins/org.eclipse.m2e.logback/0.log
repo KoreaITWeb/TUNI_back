@@ -1,7 +1,0 @@
-<<<<<<< HEAD
-2025-07-18 20:30:21,227 [Worker-1: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is not available. Remote download required.
-2025-07-21 18:27:46,344 [Worker-7: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is out-of-date. Trying to update.
-2025-07-21 18:32:37,709 [Worker-5: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
-=======
-2025-07-18 20:14:52,173 [Worker-5: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is not available. Remote download required.
->>>>>>> branch 'main' of git@github.com:KoreaITWeb/Tuni_back.git

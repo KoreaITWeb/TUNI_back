@@ -1,8 +1,0 @@
-<<<<<<< HEAD
-2025/07/21-18:32:47.739 5e1c Reusing MANIFEST C:\1900_web_cha\TUNI\back\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\shared_proto_db/MANIFEST-000001
-2025/07/21-18:32:47.740 5e1c Recovering log #3
-2025/07/21-18:32:47.740 5e1c Reusing old log C:\1900_web_cha\TUNI\back\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\shared_proto_db/000003.log 
-=======
-2025/07/18-20:14:50.565 33ac Creating DB C:\WebProject\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\shared_proto_db since it was missing.
-2025/07/18-20:14:50.573 33ac Reusing MANIFEST C:\WebProject\Tuni_back\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\shared_proto_db/MANIFEST-000001
->>>>>>> branch 'main' of git@github.com:KoreaITWeb/Tuni_back.git
