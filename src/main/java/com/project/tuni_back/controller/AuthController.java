@@ -1,6 +1,7 @@
 package com.project.tuni_back.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -11,8 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.tuni_back.bean.vo.UniversityVO;
 import com.project.tuni_back.bean.vo.UserVO;
-import com.project.tuni_back.dto.EmailRequestDto;
+import com.project.tuni_back.dto.CodeRequestDto;
 import com.project.tuni_back.dto.JwtTokenDto;
 import com.project.tuni_back.dto.RegisterRequestDto;
 import com.project.tuni_back.mapper.UserMapper;
@@ -22,57 +24,64 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("/api/auth") // 모든 인증 관련 경로는 /api/auth 로 시작
 public class AuthController {
 
     private final AuthService authService;
     private final UserMapper userMapper;
 
-    @PostMapping("/send-code")
-    public ResponseEntity<String> sendVerificationCode(@RequestBody EmailRequestDto emailDto) {
-        // 도메인 검증 및 코드 발송 로직은 AuthService에 위임
-        authService.sendCodeToEmail(emailDto.getEmail());
-        return ResponseEntity.ok("인증 코드가 성공적으로 전송되었습니다.");
+    /**
+     * 프론트엔드에 전체 대학교 목록을 제공하는 API
+     */
+    @GetMapping("/universities")
+    public List<UniversityVO> getUniversityList() {
+        return authService.getAllUniversities();
     }
 
-//    @PostMapping("/verify-code")
-//    public ResponseEntity<JwtTokenDto> verifyCodeAndLogin(@RequestBody VerificationRequestDto verificationDto) {
-//        // 코드 검증 및 로그인/회원가입 로직은 AuthService에 위임
-//        JwtTokenDto token = authService.verifyCodeAndLogin(verificationDto);
-//        return ResponseEntity.ok(token);
-//    }
-    @PostMapping("/verify-code")
-    public ResponseEntity<?> verifyCode(@RequestBody RegisterRequestDto dto) {
-        // 코드 유효성 검사
-        authService.verifyCode(dto);
+    /**
+     * 선택한 대학교와 이메일 도메인을 검증하고 인증 코드를 발송하는 API
+     */
+    @PostMapping("/code/send") // 경로를 좀 더 명확하게 변경
+    public ResponseEntity<?> sendVerificationCode(@RequestBody CodeRequestDto dto) {
+        try {
+            authService.validateAndSendCode(dto.getUniversityId(), dto.getEmail());
+            return ResponseEntity.ok(Map.of("message", "인증 코드가 성공적으로 전송되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 
-        // 신규/기존 회원 여부 확인
+    /**
+     * 이메일과 인증 코드가 유효한지 검증하는 API
+     */
+    @PostMapping("/code/verify") // 경로를 좀 더 명확하게 변경
+    public ResponseEntity<?> verifyCode(@RequestBody RegisterRequestDto dto) {
+        authService.verifyCode(dto);
         UserVO user = userMapper.findByEmail(dto.getEmail());
         boolean isNewUser = (user == null);
-
-        // 신규/기존 회원 여부를 담아 응답
+        
         Map<String, Object> response = new HashMap<>();
         response.put("isNewUser", isNewUser);
         response.put("message", "코드 인증에 성공했습니다.");
         return ResponseEntity.ok(response);
     }
     
-    // 신규 회원 가입
-    @PostMapping("/register")
-    public ResponseEntity<JwtTokenDto> register(@RequestBody RegisterRequestDto dto) {
-        // 코드가 유효한지 한번 더 확인
-        authService.verifyCode(dto);
-        
-        // 신규 회원 가입 처리
-        JwtTokenDto token = authService.registerNewUser(dto);
-        return ResponseEntity.ok(token);
-    }
-    
+    /**
+     * 닉네임 중복을 확인하는 API
+     */
     @GetMapping("/check-nickname")
     public ResponseEntity<Map<String, Boolean>> checkNickname(@RequestParam String nickname) {
         boolean isAvailable = authService.isNicknameAvailable(nickname);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("available", isAvailable);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Map.of("available", isAvailable));
+    }
+    
+    /**
+     * 최종 회원가입을 처리하는 API
+     */
+    @PostMapping("/register")
+    public ResponseEntity<JwtTokenDto> register(@RequestBody RegisterRequestDto dto) {
+        authService.verifyCode(dto); // 최종 가입 전 코드 재검증
+        JwtTokenDto token = authService.registerNewUser(dto);
+        return ResponseEntity.ok(token);
     }
 }
