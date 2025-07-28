@@ -6,6 +6,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,8 +33,8 @@ public class BoardController {
     private UserMapper umapper;
 
     // 게시글 등록 페이지 정보 조회
-    @PostMapping("register/info")
-    public ResponseEntity<Map<String, Object>> getRegisterInfo(@RequestParam String userId) {
+    @GetMapping("register")
+    public ResponseEntity<Map<String, Object>> register(@RequestParam String userId) {
         try {
             Map<String, Object> response = new HashMap<>();
             response.put("user", umapper.findByNickname(userId));
@@ -50,7 +53,7 @@ public class BoardController {
 
     // 게시글 등록
     @PostMapping("register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody BoardVO vo, @RequestParam String userId) {
+    public ResponseEntity<Map<String, Object>> registerProduct(@RequestBody BoardVO vo, @RequestParam String userId) {
         Map<String, Object> response = new HashMap<>();
         
         try {
@@ -81,7 +84,7 @@ public class BoardController {
 
     // 게시글 목록 조회
     @PostMapping("list")
-    public ResponseEntity<Map<String, Object>> list(@RequestParam Long schoolId, @RequestParam String userId) {
+    public ResponseEntity<Map<String, Object>> getProductList(@RequestParam Long schoolId, @RequestParam String userId) {
         log.info("List on");
         
         try {
@@ -103,7 +106,7 @@ public class BoardController {
 
     // 게시글 상세 조회
     @PostMapping("read")
-    public ResponseEntity<Map<String, Object>> read(@RequestParam Long boardId, @RequestParam String userId) {
+    public ResponseEntity<Map<String, Object>> readProduct(@RequestParam Long boardId, @RequestParam String userId) {
         log.info("read on");
         
         try {
@@ -125,4 +128,79 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+    
+    @DeleteMapping("remove/{boardId}")
+    public ResponseEntity<Map<String, Object>> removeProduct(@PathVariable Long boardId) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.info("게시글 삭제 요청 - boardId: {}", boardId);
+            
+            // 게시글 삭제 실행
+            int deleteResult = mapper.removeProduct(boardId);
+            
+            if (deleteResult > 0) {
+                response.put("success", true);
+                response.put("message", "글 삭제에 성공하였습니다.");
+                response.put("deletedBoardId", boardId);
+                
+                log.info("게시글 삭제 성공 - boardId: {}", boardId);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "실패하였습니다.");
+                
+                log.warn("게시글 삭제 실패 - boardId: {}", boardId);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
+        } catch (Exception e) {
+            log.error("게시글 삭제 중 예외 발생 - boardId: {}, error: {}", boardId, e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "게시글 삭제 중 오류가 발생했습니다.");
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    @PostMapping("update")
+    public ResponseEntity<Map<String, Object>> updateProduct(@RequestBody BoardVO vo) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.info("게시글 수정 요청 - boardId: {}, title: '{}'", vo.getBoardId(), vo.getTitle());
+            
+            // 게시글 수정 실행
+            int updateResult = mapper.updateProduct(vo);
+            
+            if (updateResult > 0) {
+                response.put("success", true);
+                response.put("message", "글이 수정되었습니다.");
+                response.put("updatedBoardId", vo.getBoardId());
+                response.put("updatedBoard", vo);
+                
+                log.info("게시글 수정 성공 - boardId: {}, title: '{}'", 
+                        vo.getBoardId(), vo.getTitle());
+                
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "글 수정에 실패하였습니다.");
+                
+                log.warn("게시글 수정 실패 - boardId: {}", vo.getBoardId());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
+        } catch (Exception e) {
+            log.error("게시글 수정 중 예외 발생 - boardId: {}, error: {}", 
+                    vo.getBoardId(), e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "게시글 수정 중 오류가 발생했습니다.");
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+  
 }
