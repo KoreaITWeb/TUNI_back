@@ -1,22 +1,25 @@
 package com.project.tuni_back.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.project.tuni_back.bean.vo.UniversityVO;
+import com.project.tuni_back.dto.CodeRequestDto;
 import com.project.tuni_back.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/school")
@@ -34,9 +37,9 @@ public class SchoolController {
 //        return "school-verify"; // school-verify.html 템플릿을 반환
 //    }
     @GetMapping("/verify")
-    public ResponseEntity<List<UniversityVO>> showVerifyForm() {
-        List<UniversityVO> universities = authService.getAllUniversities();
-        return ResponseEntity.ok(universities); // school-verify.html 템플릿을 반환
+    public List<UniversityVO> showVerifyForm() {
+        //List<UniversityVO> universities = authService.getAllUniversities();
+        return authService.getAllUniversities(); // school-verify.html 템플릿을 반환
     }
     
     /**
@@ -59,14 +62,16 @@ public class SchoolController {
 //    }
     
     @PostMapping("/verify")
-    public ResponseEntity<?> processVerifyForm(@RequestParam Long universityId,
-                                    @RequestParam String email) {
+    public ResponseEntity<?> processVerifyForm(@RequestBody CodeRequestDto dto) {
         try {
-            authService.validateAndSendCode(universityId, email);
+            authService.validateAndSendCode(dto.getUniversityId(), dto.getEmail());
             // 성공 시, 코드 입력 페이지로 리다이렉트 (이메일 정보 전달)
             return ResponseEntity.ok(Map.of("message", "인증 코드 발송 완료")); // 코드 입력 폼 페이지 (추후 구현)
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        	Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
     /**

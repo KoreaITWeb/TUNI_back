@@ -43,7 +43,7 @@ public class AuthService {
         // 1. 사용자가 입력한 이메일에서 도메인 추출
         String userDomain = email.substring(email.indexOf("@") + 1);
 
-        // 2. 선택한 대학교 ID로 허용된 도메인 목록을 DB에서 조회
+        // 2. 선택한 대학교 ID로 허용된 도메인 목록을 DsB에서 조회
         List<String> allowedDomains = universityMapper.findDomainsByUniversityId(universityId);
 
         // 3. 만약 해당 대학교에 등록된 도메인이 없다면 에러 처리
@@ -99,8 +99,8 @@ public class AuthService {
         // 2. 신규 유저 객체 생성
         UserVO newUser = new UserVO();
         newUser.setEmail(dto.getEmail());
-        newUser.setUser_id(dto.getUser_id()); // 입력받은 닉네임으로 설정
-        newUser.setSchool_id(university.getId());
+        newUser.setUserId(dto.getUser_id()); // 입력받은 닉네임으로 설정
+        newUser.setSchoolId(university.getSchoolId());
         
         userMapper.save(newUser);
 
@@ -137,8 +137,8 @@ public class AuthService {
 			}
 		
 			UserVO newUser = new UserVO();
-			newUser.setUser_id("testuser" + dto.getCode());
-			newUser.setSchool_id(university.getId());
+			newUser.setUserId("testuser" + dto.getCode());
+			newUser.setSchoolId(university.getSchoolId());
 			newUser.setEmail(dto.getEmail());
 			 
 			userMapper.save(newUser);
