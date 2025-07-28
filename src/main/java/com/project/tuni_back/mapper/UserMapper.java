@@ -10,6 +10,9 @@ public interface UserMapper {
     // User 객체를 받아 DB에 저장하는 메소드
     void save(UserVO user);
 
-    // 이메일로 사용자를 찾는 메소드 (추후 필요)
+    // 이메일로 사용자를 찾는 메소드
     UserVO findByEmail(String email);
+
+    // 닉네임으로 사용자 찾는 메소드
+    UserVO findByNickname(String user_id); 
 }

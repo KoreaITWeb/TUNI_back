@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<div>
+		<a th:href="@{/board/register(userId=${user.userId})}" 
+                   class="select-link"
+                  >상품 등록</a>
+	</div>
+	<div>
+	<table border="1">
+		<thead>
+			<tr>
+				<td></td>
+				<td>상품이름</td>
+			</tr>
+		</thead>
+		<tbody>
+        <tr th:each="list, iterStat : ${list}">
+            <td th:text="${iterStat.count}">번호</td>
+            <td>
+                <a th:href="@{/board/read(boardId=${list.boardId},userId=${user.userId})}" 
+                   class="select-link"
+                   th:text="${list.title}"></a></td>
+			</th:block>
+		</tbody>
+	</table>
+	</div>
+</body>
+</html>

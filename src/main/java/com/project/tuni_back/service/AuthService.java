@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.project.tuni_back.bean.vo.UniversityVO;
 import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.dto.JwtTokenDto;
-import com.project.tuni_back.dto.VerificationRequestDto;
+import com.project.tuni_back.dto.RegisterRequestDto;
 import com.project.tuni_back.jwt.JwtTokenProvider;
 import com.project.tuni_back.mapper.UniversityMapper;
 import com.project.tuni_back.mapper.UserMapper;
@@ -43,7 +43,7 @@ public class AuthService {
         // 1. 사용자가 입력한 이메일에서 도메인 추출
         String userDomain = email.substring(email.indexOf("@") + 1);
 
-        // 2. 선택한 대학교 ID로 허용된 도메인 목록을 DB에서 조회
+        // 2. 선택한 대학교 ID로 허용된 도메인 목록을 DsB에서 조회
         List<String> allowedDomains = universityMapper.findDomainsByUniversityId(universityId);
 
         // 3. 만약 해당 대학교에 등록된 도메인이 없다면 에러 처리
@@ -78,7 +78,45 @@ public class AuthService {
         return String.format("%06d", new Random().nextInt(1000000));
     }
 	
-	public JwtTokenDto verifyCodeAndLogin(VerificationRequestDto dto) {
+    public boolean verifyCode(RegisterRequestDto dto) {
+        String storedCode = redisService.getVerificationCode(dto.getEmail());
+        if (storedCode == null || !storedCode.equals(dto.getCode())) {
+            throw new BadCredentialsException("인증 코드가 일치하지 않습니다.");
+        }
+        return true; // 코드 일치
+    }
+    
+    // 신규 회원 가입
+    public JwtTokenDto registerNewUser(RegisterRequestDto dto) {
+        // 1. 닉네임 중복 확인
+        UserVO existingUserByNickname = userMapper.findByNickname(dto.getUserId());
+        if (existingUserByNickname != null) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+        }
+
+        String domain = dto.getEmail().split("@")[1];
+		UniversityVO university = universityMapper.findByDomain(domain);
+        // 2. 신규 유저 객체 생성
+        UserVO newUser = new UserVO();
+        newUser.setEmail(dto.getEmail());
+        newUser.setUserId(dto.getUserId()); // 입력받은 닉네임으로 설정
+        newUser.setSchoolId(university.getSchoolId());
+        
+        userMapper.save(newUser);
+
+        // 3. 가입 완료 후 Redis 코드 삭제 및 JWT 발급
+        redisService.deleteVerificationCode(dto.getEmail());
+        return jwtTokenProvider.generateToken(dto.getEmail());
+    }
+    
+    // 기존 유저 로그인
+    public JwtTokenDto loginExistingUser(RegisterRequestDto dto) {
+        // Redis 코드는 이미 verifyCode에서 검증되었으므로 여기서는 삭제만 진행
+        redisService.deleteVerificationCode(dto.getEmail());
+        return jwtTokenProvider.generateToken(dto.getEmail());
+    }
+    
+	public JwtTokenDto verifyCodeAndLogin(RegisterRequestDto dto) {
 		// 1. Redis에서 인증 코드 가져오기
 		String storedCode = redisService.getVerificationCode(dto.getEmail());
 
@@ -99,8 +137,8 @@ public class AuthService {
 			}
 		
 			UserVO newUser = new UserVO();
-			newUser.setUser_id("testuser" + dto.getCode());
-			newUser.setId(Integer.parseInt(dto.getCode()));
+			newUser.setUserId("testuser" + dto.getCode());
+			newUser.setSchoolId(university.getSchoolId());
 			newUser.setEmail(dto.getEmail());
 			 
 			userMapper.save(newUser);
@@ -115,4 +153,9 @@ public class AuthService {
 		
 		return token;
 	}
+	
+	public boolean isNicknameAvailable(String nickname) {
+        return userMapper.findByNickname(nickname) == null;
+    }
+
 }
