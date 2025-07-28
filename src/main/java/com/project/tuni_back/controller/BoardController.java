@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,39 +31,20 @@ public class BoardController {
     @Autowired
     private UserMapper umapper;
 
-    // 게시글 등록 페이지 정보 조회
-    @GetMapping("register")
-    public ResponseEntity<Map<String, Object>> register(@RequestParam String userId) {
-        try {
-            Map<String, Object> response = new HashMap<>();
-            response.put("user", umapper.findByNickname(userId));
-            response.put("success", true);
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("게시글 등록 정보 조회 실패: {}", e.getMessage());
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "사용자 정보 조회에 실패했습니다.");
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
     // 게시글 등록
     @PostMapping("register")
-    public ResponseEntity<Map<String, Object>> registerProduct(@RequestBody BoardVO vo, @RequestParam String userId) {
+    public ResponseEntity<Map<String, Object>> registerProduct(@RequestBody BoardVO vo) {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            response.put("user", umapper.findByNickname(userId));
+            response.put("user", umapper.findByNickname(vo.getUserId()));
             
             if (mapper.registerProduct(vo) > 0) {
                 log.info("{}님이 글을 등록함", vo.getUserId());
                 response.put("success", true);
                 response.put("message", "게시글이 성공적으로 등록되었습니다.");
-                response.put("userId", userId);
-                response.put("userInfo", umapper.findByNickname(userId));
+                response.put("userId", vo.getUserId());
+                response.put("userInfo", umapper.findByNickname(vo.getUserId()));
                 
                 return ResponseEntity.ok(response);
             } else {
