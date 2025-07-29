@@ -92,17 +92,5 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/mypage")
-    public ResponseEntity<UserVO> getMyPage(@RequestParam("userId") String userId) {
-        UserVO user = authService.getUserByUserId(userId);
-        return ResponseEntity.ok(user);
-    }
     
-    @PutMapping("/mypage")
-    public ResponseEntity<?> updateUserId(
-            @RequestParam String oldUserId, 
-            @RequestParam String newUserId) {
-        authService.updateUserId(oldUserId, newUserId);
-        return ResponseEntity.ok().build();
-    }
 }

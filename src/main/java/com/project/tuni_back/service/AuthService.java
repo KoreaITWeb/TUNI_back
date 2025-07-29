@@ -162,22 +162,6 @@ public class AuthService {
 //		return token;
 //	}
     
-    // 마이페이지
-    public UserVO getUserByUserId(String userId) {
-        UserVO user = userMapper.findByNickname(userId);
-        if (user == null) {
-            throw new IllegalArgumentException("해당 닉네임의 사용자가 없습니다.");
-        }
-        return user;
-    }
-
-    public void updateUserId(String oldUserId, String newUserId) {
-        // 중복 체크
-        UserVO existingUser = userMapper.findByNickname(newUserId);
-        if (existingUser != null) {
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
-        }
-        userMapper.updateUserId(oldUserId, newUserId);
-    }
+    
 
 }
