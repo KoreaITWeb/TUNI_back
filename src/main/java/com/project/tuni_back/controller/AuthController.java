@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.project.tuni_back.bean.vo.UniversityVO;
 import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.dto.CodeRequestDto;
-import com.project.tuni_back.dto.JwtTokenDto;
 import com.project.tuni_back.dto.RegisterRequestDto;
 import com.project.tuni_back.mapper.UserMapper;
 import com.project.tuni_back.service.AuthService;
@@ -85,10 +84,12 @@ public class AuthController {
      * 최종 회원가입을 처리하는 API
      */
     @PostMapping("/register")
-    public ResponseEntity<JwtTokenDto> register(@RequestBody RegisterRequestDto dto) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDto dto) {
     	authService.verifyCode(dto); // 최종 가입 전 코드 재검증
-        JwtTokenDto token = authService.registerNewUser(dto);
-        return ResponseEntity.ok(token);
+    	Map<String, Object> response = new HashMap<>();
+    	response.put("message", "회원 가입에 성공했습니다.");
+    	response.put("token", authService.registerNewUser(dto));
+        return ResponseEntity.ok(response);
     }
     
     @GetMapping("/mypage")
