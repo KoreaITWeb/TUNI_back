@@ -10,6 +10,7 @@ import com.project.tuni_back.bean.vo.ImageFileVO;
 public interface ImageFileMapper {
    public int insert(ImageFileVO vo);
    public List<ImageFileVO> getImageFile(Long boardId);
-   public ImageFileVO getImageByUuid(String uuid);
+   public int updateImageFile(ImageFileVO vo);
+   public int deleteByBoardId(Long boardId);
    public int deleteByUuid(String uuid);
 }

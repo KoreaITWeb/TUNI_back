@@ -11,5 +11,4 @@ public class ImageFileVO {
 	private String uploadPath;
 	private String uuid;
 	private Long boardId;
-	private String viewUrl;
 }
