@@ -18,4 +18,12 @@
 	    FROM `users` 
 	    WHERE user_id = #{user_id}
 	</select>
+	
+	<update id="updateUserId" parameterType="map">
+	    UPDATE users
+	    SET user_id = #{newUserId}
+	    WHERE user_id = #{oldUserId}
+	</update>
+
+	
 </mapper>
