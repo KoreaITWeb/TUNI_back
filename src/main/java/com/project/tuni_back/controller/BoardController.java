@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.tuni_back.bean.vo.BoardVO;
+import com.project.tuni_back.dto.SellProductDto;
 import com.project.tuni_back.mapper.BoardMapper;
 import com.project.tuni_back.mapper.UserMapper;
 
@@ -53,18 +54,21 @@ public class BoardController {
 
     // 게시글 등록
     @PostMapping("register")
-    public ResponseEntity<Map<String, Object>> registerProduct(@RequestBody BoardVO vo, @RequestParam String userId) {
+    public ResponseEntity<Map<String, Object>> registerProduct(@RequestBody SellProductDto dto) {
         Map<String, Object> response = new HashMap<>();
-        
+        // log.info(""+dto);
         try {
-            response.put("user", umapper.findByNickname(userId));
+            BoardVO vo = new BoardVO();
+            vo.setUserId(dto.getUserId());
+            vo.setSchoolId(dto.getSchoolId());
+            vo.setTitle(dto.getTitle());
+            vo.setContent(dto.getContent());
+            vo.setPrice(dto.getPrice());
             
             if (mapper.registerProduct(vo) > 0) {
-                log.info("{}님이 글을 등록함", vo.getUserId());
+                log.info(dto.getUserId() + " 님이 글을 등록함");
                 response.put("success", true);
                 response.put("message", "게시글이 성공적으로 등록되었습니다.");
-                response.put("userId", userId);
-                response.put("userInfo", umapper.findByNickname(userId));
                 
                 return ResponseEntity.ok(response);
             } else {
