@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.tuni_back.board.mapper.ProductMapper">
+
+    <select id="getAllProducts" resultType="com.project.tuni_back.board.bean.vo.ProductVO">
+        SELECT * FROM product
+    </select>
+
+    <select id="getProductById" parameterType="int" resultType="com.project.tuni_back.board.bean.vo.ProductVO">
+        SELECT * FROM product WHERE id = #{id}
+    </select>
+
+    <insert id="insertProduct" parameterType="com.project.tuni_back.board.bean.vo.ProductVO">
+        INSERT INTO product (id, name, description, price)
+        VALUES (NEXTVAL(SEQ_PRODUCT), #{name}, #{description}, #{price})
+    </insert>
+
+</mapper>
+
+//
