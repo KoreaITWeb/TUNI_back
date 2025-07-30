@@ -2,6 +2,38 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- 연결할 인터페이스 정보를 namespace에 기술 -->
 <mapper namespace="com.project.tuni_back.mapper.ChatMapper">
-   	
+   	 <!-- 1. 채팅방 생성 -->
+  <insert id="registerChatRoom">
+    INSERT INTO chat_room_list (
+      chat_id, board_id, buyer_id, seller_id
+    ) VALUES (
+      NEXTVAL(seq_chat), #{boardId}, #{buyerId}, #{sellerId}
+    )
+  </insert>
+
+  <!-- 2. 특정 사용자(buyer/seller) 기준 채팅방 목록 -->
+  <select id="getChatRoomsByUserId" resultType="com.project.tuni_back.bean.vo.ChatRoomListVO">
+    SELECT chat_id, board_id, buyer_id, seller_id
+    FROM chat_room_list
+    WHERE (buyer_id = #{buyerId}
+    AND    seller_id = #{sellerId}) 
+  </select>                                                                                                                                                                                                                                                                     
+
+  <!-- 3. 채팅 메시지 저장 (content, regdate는 default 처리됨) -->
+  <insert id="registerChatMessage">
+    INSERT INTO chat_message (
+      chat_id, board_id, user_id
+    ) VALUES (
+      #{chatId}, #{boardId}, #{userId}
+    )
+  </insert>
+
+  <!-- 4. 특정 채팅방(chat_id) 기준 메시지 조회 -->
+  <select id="getMessagesByChatId" resultType="com.project.tuni_back.bean.vo.ChatMessageVO">
+    SELECT chat_id, board_id, user_id, content, regdate
+    FROM chat_message
+    WHERE chat_id = #{chatId}
+    ORDER BY regdate 
+  </select>
 	
 </mapper>
