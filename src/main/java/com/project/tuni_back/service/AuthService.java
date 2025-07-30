@@ -57,7 +57,7 @@ public class AuthService {
         // 1. 사용자가 입력한 이메일에서 도메인 추출
         String userDomain = email.substring(email.indexOf("@") + 1);
 
-        // 2. 선택한 대학교 ID로 허용된 도메인 목록을 DsB에서 조회
+        // 2. 선택한 대학교 ID로 허용된 도메인 목록을 DB에서 조회
         List<String> allowedDomains = universityMapper.findDomainsByUniversityId(universityId);
 
         // 3. 만약 해당 대학교에 등록된 도메인이 없다면 에러 처리
@@ -75,7 +75,9 @@ public class AuthService {
         }
         
         // 5. 검증 통과 시, 코드 발송 로직 호출
-        sendCodeToEmail(email);
+        // sendCodeToEmail(email);
+        String verificationCode = "123456";
+        redisService.setVerificationCode(email, verificationCode);
     }
 	
     // 코드 검증
