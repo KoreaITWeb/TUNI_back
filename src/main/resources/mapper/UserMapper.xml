@@ -18,7 +18,12 @@
 	    FROM `users` 
 	    WHERE user_id = #{user_id}
 	</select>
-	
+	<select id="findBySchoolname" parameterType="java.lang.String" resultType="com.project.tuni_back.bean.vo.UserVO">
+	    SELECT u.user_id, u.school_id, s.name AS school_name
+	    FROM user u
+	    JOIN school s ON u.school_id = s.school_id
+	    WHERE u.user_id = #{userId}
+	</select>
 	<update id="updateUserId" parameterType="map">
 	    UPDATE users
 	    SET user_id = #{newUserId}

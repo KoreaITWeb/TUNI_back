@@ -1,5 +1,7 @@
 package com.project.tuni_back.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.tuni_back.bean.vo.UniversityVO;
 import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.mapper.UserMapper;
 import com.project.tuni_back.service.AuthService;
@@ -24,12 +27,25 @@ public class MypageController {
 	private final UserMapper userMapper;
 	
 	
+//	@GetMapping("/{userId}")
+//    public ResponseEntity<UserVO> getUserId(@PathVariable("userId") String userId) {
+//        UserVO user = mypageService.getUserByUserId(userId);
+//        return ResponseEntity.ok(user);
+//    }
+	
 	@GetMapping("/{userId}")
-    public ResponseEntity<UserVO> getMyPage(@PathVariable("userId") String userId) {
-        UserVO user = mypageService.getUserByUserId(userId);
-        return ResponseEntity.ok(user);
-    }
+	public ResponseEntity<Map<String, Object>> getUserWithUniversity(@PathVariable String userId) {
+	    Map<String, Object> data = mypageService.getId(userId);
+	    return ResponseEntity.ok(data);
+	}
+
     
+//	@GetMapping("/{schoolId")
+//	public ResponseEntity<UniversityVO> getSchoolId(@PathVariable("schoolId") String schoolId){
+//		UniversityVO university = mypageService.getUniversityById(schoolId);
+//		
+//	}
+	
     @PutMapping("/mypage")
     public ResponseEntity<?> updateUserId(
             @RequestParam String oldUserId, 
