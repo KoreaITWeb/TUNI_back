@@ -1,5 +1,7 @@
 package com.project.tuni_back.controller;
 
+import java.util.Map;
+
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -33,6 +35,21 @@ public class ChatWebSocketController {
     public ChatRoomListVO createRoom(ChatRoomListVO room) {
         chatService.createChatRoom(room); // 채팅방 생성 (chatId 자동 주입)
         return room;                      // 생성된 채팅방 정보 브로드캐스트
+    }
+    
+    
+    
+    @MessageMapping("/chat/quit")
+    @SendTo("/topic/rooms")
+    public Map<String, Object> quitChatRoom(Map<String, Object> quitData) {
+        String userId = (String) quitData.get("userId");
+        Long chatId = Long.valueOf(quitData.get("chatId").toString());
+        
+        chatService.updateChatRoom(userId, chatId);
+        
+        // 클라이언트에서 구분할 수 있도록 action 추가
+        quitData.put("action", "quit");
+        return quitData;
     }
 
 

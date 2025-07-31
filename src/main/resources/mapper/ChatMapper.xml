@@ -4,10 +4,13 @@
 <mapper namespace="com.project.tuni_back.mapper.ChatMapper">
    	 <!-- 1. 채팅방 생성 -->
   <insert id="registerChatRoom">
+	  <selectKey keyProperty="chatId" order="BEFORE" resultType="long"> 
+	  	SELECT NEXTVAL(SEQ_CHAT) FROM DUAL 
+	  </selectKey>
     INSERT INTO chat_room_list (
       chat_id, board_id, buyer_id, seller_id
     ) VALUES (
-      NEXTVAL(seq_chat), #{boardId}, #{buyerId}, #{sellerId}
+      #{chatId}, #{boardId}, #{buyerId}, #{sellerId}
     )
   </insert>
 

@@ -41,4 +41,11 @@ public class ChatController {
     public ResponseEntity<List<ChatMessageVO>> getMessages(@RequestParam Long chatId) {
         return ResponseEntity.ok(chatService.getMessages(chatId));
     }
+    
+    // 채팅방 나가기
+    @PostMapping("/quit")
+    public ResponseEntity<Void> quitChatRoom(@RequestParam String userId, @RequestParam Long chatId){
+    	chatService.updateChatRoom(userId, chatId);
+    	return ResponseEntity.ok().build();
+    }
 }
