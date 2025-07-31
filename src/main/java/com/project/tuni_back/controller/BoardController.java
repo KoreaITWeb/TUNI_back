@@ -153,7 +153,7 @@ public class BoardController {
         }
     }
     
-    @DeleteMapping("/remove/{boardId}")
+    @DeleteMapping("/{boardId}")
     public ResponseEntity<Map<String, Object>> removeProduct(@PathVariable Long boardId) {
         
         Map<String, Object> response = new HashMap<>();
