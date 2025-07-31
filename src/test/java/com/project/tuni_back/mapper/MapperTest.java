@@ -2,13 +2,16 @@ package com.project.tuni_back.mapper;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.project.tuni_back.bean.vo.ChatRoomListVO;
 import com.project.tuni_back.bean.vo.ImageFileVO;
 import com.project.tuni_back.bean.vo.UniversityVO;
 
 import lombok.extern.slf4j.Slf4j;
+
 
 @Slf4j
 @SpringBootTest
@@ -46,5 +49,18 @@ public class MapperTest {
                 "ID: " + uni.getSchoolId() + ", Name: " + uni.getName()
         ));
 		System.out.println("------------------------------------");
+	}
+	
+	@Autowired
+	public ChatMapper cmapper;
+	
+	@Test
+	public void rcr() {
+		ChatRoomListVO vo = new ChatRoomListVO();
+		vo.setBoardId(1L);
+		vo.setBuyerId("afda");
+		vo.setSellerId("132124124");
+		cmapper.registerChatRoom(vo);
+		
 	}
 }

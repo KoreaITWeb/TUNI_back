@@ -3,17 +3,28 @@
 <!-- 연결할 인터페이스 정보를 namespace에 기술 -->
 <mapper namespace="com.project.tuni_back.mapper.BoardMapper">
    	<select id="getProductList" resultType="com.project.tuni_back.bean.vo.BoardVO"> 
-	   SELECT BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE,REGDATE, LIKES, VIEWS 
-	   FROM BOARD WHERE SCHOOL_ID = #{schoolId} 
+	   SELECT B.BOARD_ID, B.SCHOOL_ID, B.USER_ID, B.TITLE, B.CONTENT, B.PRICE, B.REGDATE, B.LIKES, B.VIEWS, 
+	   (
+            SELECT CONCAT('/images/display?fileName=', REPLACE(I.UPLOAD_PATH, '\\', '/'), '/s_', I.UUID, '_', I.FILE_NAME)
+            FROM IMAGEFILE I
+            WHERE I.BOARD_ID = B.BOARD_ID
+            LIMIT 1
+        ) AS thumbnailUrl 
+	   FROM BOARD B WHERE B.SCHOOL_ID = #{schoolId} 
+	   ORDER BY B.BOARD_ID DESC
 	</select>
 	<select id="readProduct" resultType="com.project.tuni_back.bean.vo.BoardVO"> 
-		SELECT BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE,REGDATE, LIKES, VIEWS 
+		SELECT BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE, REGDATE, LIKES, VIEWS 
 		FROM BOARD 
 		WHERE BOARD_ID = #{boardId} 
 	</select>
-	<insert id="registerProduct"> 
-		INSERT INTO BOARD(BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE) 
-		VALUES(NEXTVAL(SEQ_BOARD), #{schoolId}, #{userId}, #{title}, #{content}, #{price}) 
+	<insert id="registerProduct" parameterType="com.project.tuni_back.bean.vo.BoardVO">
+	    <selectKey keyProperty="boardId" resultType="long" order="BEFORE">
+	        SELECT NEXTVAL(SEQ_BOARD)
+	    </selectKey>
+	
+	    INSERT INTO BOARD(BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE)
+	    VALUES(#{boardId}, #{schoolId}, #{userId}, #{title}, #{content}, #{price})
 	</insert>
 	<delete id="removeProduct"> 
 		DELETE FROM BOARD 

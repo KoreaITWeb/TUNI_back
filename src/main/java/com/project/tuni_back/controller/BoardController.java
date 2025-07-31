@@ -68,6 +68,8 @@ public class BoardController {
             if (mapper.registerProduct(vo) > 0) {
                 log.info(dto.getUserId() + " 님이 글을 등록함");
                 response.put("success", true);
+                response.put("boardId", vo.getBoardId());
+                log.info(""+vo.getBoardId());
                 response.put("message", "게시글이 성공적으로 등록되었습니다.");
                 
                 return ResponseEntity.ok(response);
@@ -89,7 +91,7 @@ public class BoardController {
     // 게시글 목록 조회
     @PostMapping("list")
     public ResponseEntity<Map<String, Object>> getProductList(@RequestParam Long schoolId, @RequestParam String userId) {
-        log.info("List on");
+        log.info(userId + " 상품 조회");
         
         try {
             Map<String, Object> response = new HashMap<>();
