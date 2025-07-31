@@ -3,6 +3,7 @@ package com.project.tuni_back.controller;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,11 +13,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,16 +30,19 @@ import com.project.tuni_back.bean.vo.ImageFileVO;
 import com.project.tuni_back.mapper.ImageFileMapper;
 
 import lombok.extern.slf4j.Slf4j;
-import net.coobird.thumbnailator.Thumbnailator;
+import net.coobird.thumbnailator.Thumbnails;
 
 @RestController
 @Slf4j
-@RequestMapping("/images/*")
+@RequestMapping("/images")
 public class ImageFileController {
     @Autowired
     private ImageFileMapper fmapper;
     
-    @PostMapping(value = "getImages", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Value("${spring.servlet.multipart.location}")
+    private String uploadDir;
+    
+    @PostMapping(value = "/getImages", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> getImagesByBoardId(@RequestParam Long boardId) {
         Map<String, Object> response = new HashMap<>();
         
@@ -77,18 +83,19 @@ public class ImageFileController {
     }
     
     // 이미지 업로드
-    @PostMapping(value="upload", produces=MediaType.APPLICATION_JSON_VALUE)
-    public List<ImageFileVO> upload(MultipartFile[] uploadFile, @RequestParam Long boardId) {
-        
-        // Spring 내부 resources/upload 경로 설정
-        String uploadFolder = getUploadFolder();
+    @PostMapping(value="/upload", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ImageFileVO>> upload(MultipartFile[] uploadFile, @RequestParam Long boardId) {
         
         List<ImageFileVO> fileList = new ArrayList<>();
         
-        File uploadPath = new File(uploadFolder, getFolder());
-        if(!uploadPath.exists()) { 
-            uploadPath.mkdirs(); 
+        // 날짜별 폴더 경로 생성 (예: C:/upload/tuni/2025/07/30)
+        String datePath = getFolder();
+        File uploadPath = new File(uploadDir, datePath);
+        
+        if (!uploadPath.exists()) {
+            uploadPath.mkdirs(); // 폴더 없으면 생성
         }
+        
         log.info("upload path : " + uploadPath);
         
         for(MultipartFile f : uploadFile) {
@@ -118,7 +125,7 @@ public class ImageFileController {
             ImageFileVO attach = new ImageFileVO();
             attach.setFileName(originalFileName);
             attach.setUuid(uuid.toString());
-            attach.setUploadPath(getFolder());
+            attach.setUploadPath(datePath);  // DB에는 상대 경로(날짜 폴더)만 저장
             attach.setBoardId(boardId); // 프론트엔드에서 전달받은 boardId 설정
             
             try {
@@ -130,7 +137,11 @@ public class ImageFileController {
                 FileOutputStream thumbnail = 
                     new FileOutputStream(new File(uploadPath, "s_" + uploadFileName));
                 // 100, 100은 가로와 세로 중 넓은 쪽을 100으로 맞춘다. 비율은 그대로이다.
-                Thumbnailator.createThumbnail(f.getInputStream(), thumbnail, 100, 100);
+                //Thumbnailator.createThumbnail(f.getInputStream(), thumbnail, 100, 100);
+                Thumbnails.of(f.getInputStream())
+                .size(150, 150)       // 썸네일 크기 설정 (화질을 위해 조금 키우는 것을 추천)
+                .outputQuality(0.85f)       // 품질 85%로 설정
+                .toOutputStream(thumbnail); // 출력 스트림으로 썸네일 생성
                 thumbnail.close();
                 
                 // DB에 파일 정보 저장
@@ -151,21 +162,23 @@ public class ImageFileController {
         }
         
         log.info("ResponseBody");
-        return fileList;
+        return ResponseEntity.ok(fileList);
     }
-    private String getUploadFolder() {
+    
+    @GetMapping(value="/display", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<byte[]> getImage(@RequestParam("fileName") String fileName) {
+    	log.info(fileName);
+        File file = new File(uploadDir, fileName);
+        ResponseEntity<byte[]> result = null;
+        
         try {
-            Resource resource = new ClassPathResource("upload");
-            return resource.getFile().getAbsolutePath();
-        } catch (IOException e) {
-            try {
-                String classPath = this.getClass().getClassLoader().getResource("").getPath();
-                return classPath + "upload";
-            } catch (Exception ex) {
-                log.error("Upload folder path setting failed: " + ex.getMessage());
-                return "src/main/resources/upload";
-            }
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Type", Files.probeContentType(file.toPath()));
+            result = new ResponseEntity<>(FileCopyUtils.copyToByteArray(file), headers, HttpStatus.OK);
+        } catch(IOException e) {
+            e.printStackTrace();
         }
+        return result;
     }
     
     /**
