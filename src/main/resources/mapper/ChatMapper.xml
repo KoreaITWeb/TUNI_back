@@ -15,16 +15,16 @@
   <select id="getChatRoomsByUserId" resultType="com.project.tuni_back.bean.vo.ChatRoomListVO">
     SELECT chat_id, board_id, buyer_id, seller_id
     FROM chat_room_list
-    WHERE (buyer_id = #{buyerId}
-    AND    seller_id = #{sellerId}) 
+    WHERE (buyer_id = #{userId}
+    OR    seller_id = #{userId}) 
   </select>                                                                                                                                                                                                                                                                     
 
   <!-- 3. 채팅 메시지 저장 (content, regdate는 default 처리됨) -->
   <insert id="registerChatMessage">
     INSERT INTO chat_message (
-      chat_id, board_id, user_id
+      chat_id, board_id, user_id, CONTENT
     ) VALUES (
-      #{chatId}, #{boardId}, #{userId}
+      #{chatId}, #{boardId}, #{userId}, #{content}
     )
   </insert>
 
@@ -35,5 +35,19 @@
     WHERE chat_id = #{chatId}
     ORDER BY regdate 
   </select>
+  <!-- 5. 특정 채팅방에서 나가기 -->
+  <update id="quitChatRoom">
+  	UPDATE chat_room_list
+    SET 
+        buyer_id = CASE 
+            WHEN buyer_id = #{userId} THEN buyer_id is null
+            ELSE buyer_id 
+        END,
+        seller_id = CASE 
+            WHEN seller_id = #{userId} THEN seller_id is null
+            ELSE seller_id 
+        END
+    WHERE chat_id = #{chatId}
+  </update>
 	
 </mapper>

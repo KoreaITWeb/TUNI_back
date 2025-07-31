@@ -11,6 +11,7 @@ import com.project.tuni_back.bean.vo.ChatRoomListVO;
 public interface ChatMapper {
 	public int registerChatRoom(ChatRoomListVO vo);
 	public int registerChatMessage(ChatMessageVO vo);
-	public List<ChatRoomListVO> getChatRoomsByUserId(String buyerId, String sellerId);
+	public List<ChatRoomListVO> getChatRoomsByUserId(String userId);
 	public List<ChatMessageVO> getMessagesByChatId(Long chatId);
+	public int quitChatRoom(String userId, Long chatId);
 }
