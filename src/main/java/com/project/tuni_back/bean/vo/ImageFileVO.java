@@ -7,8 +7,10 @@ import lombok.Data;
 @Data
 @Component
 public class ImageFileVO {
-	private String fileName;
-	private String uploadPath;
-	private String uuid;
-	private Long boardId;
+	private Long imgId;
+    private String uuid;
+    private String fileName;
+    private String uploadPath;
+    private Long boardId;
+    private boolean isRepresentative;
 }

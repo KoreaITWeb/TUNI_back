@@ -1,6 +1,7 @@
 package com.project.tuni_back.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +17,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.tuni_back.bean.vo.BoardVO;
+import com.project.tuni_back.bean.vo.ImageFileVO;
+import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.dto.SellProductDto;
 import com.project.tuni_back.mapper.BoardMapper;
+import com.project.tuni_back.mapper.ImageFileMapper;
 import com.project.tuni_back.mapper.UserMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-@RequestMapping("/board/*")
+@RequestMapping("/board")
 public class BoardController {
     
     @Autowired
@@ -32,13 +36,16 @@ public class BoardController {
 
     @Autowired
     private UserMapper umapper;
+    
+    @Autowired
+    private ImageFileMapper imapper;
 
     // 게시글 등록 페이지 정보 조회
-    @GetMapping("register")
+    @GetMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestParam String userId) {
         try {
             Map<String, Object> response = new HashMap<>();
-            response.put("user", umapper.findByNickname(userId));
+            response.put("user", umapper.findByUserId(userId));
             response.put("success", true);
             
             return ResponseEntity.ok(response);
@@ -53,7 +60,7 @@ public class BoardController {
     }
 
     // 게시글 등록
-    @PostMapping("register")
+    @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> registerProduct(@RequestBody SellProductDto dto) {
         Map<String, Object> response = new HashMap<>();
         // log.info(""+dto);
@@ -64,6 +71,7 @@ public class BoardController {
             vo.setTitle(dto.getTitle());
             vo.setContent(dto.getContent());
             vo.setPrice(dto.getPrice());
+            vo.setCategory(dto.getCategory());
             
             if (mapper.registerProduct(vo) > 0) {
                 log.info(dto.getUserId() + " 님이 글을 등록함");
@@ -89,13 +97,13 @@ public class BoardController {
     }
 
     // 게시글 목록 조회
-    @PostMapping("list")
+    @PostMapping("/list")
     public ResponseEntity<Map<String, Object>> getProductList(@RequestParam Long schoolId, @RequestParam String userId) {
         log.info(userId + " 상품 조회");
         
         try {
             Map<String, Object> response = new HashMap<>();
-            response.put("user", umapper.findByNickname(userId));
+            response.put("user", umapper.findByUserId(userId));
             response.put("list", mapper.getProductList(schoolId));
             response.put("success", true);
             
@@ -111,17 +119,27 @@ public class BoardController {
     }
 
     // 게시글 상세 조회
-    @PostMapping("read")
-    public ResponseEntity<Map<String, Object>> readProduct(@RequestParam Long boardId, @RequestParam String userId) {
+    @GetMapping("/{boardId}")
+    public ResponseEntity<Map<String, Object>> readProduct(@PathVariable Long boardId) {
         log.info("read on");
         
         try {
-            BoardVO boardData = mapper.readProduct(boardId);
-            log.info("read : {}", boardData);
+        	BoardVO board = mapper.readProduct(boardId);
+        	if (board == null) {
+                throw new IllegalArgumentException("존재하지 않는 게시물입니다.");
+            }
+            log.info("read : {}", board);
+            
+            //작성자 정보 조회
+        	UserVO user = umapper.findByUserId(board.getUserId());
+        	
+        	// 3. 이미지 목록 조회
+            List<ImageFileVO> images = imapper.getImageFile(boardId);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("user", umapper.findByNickname(userId));
-            response.put("board", boardData);
+            response.put("board", board);
+            response.put("user", user);
+            response.put("images", images);
             response.put("success", true);
             
             return ResponseEntity.ok(response);
@@ -135,7 +153,7 @@ public class BoardController {
         }
     }
     
-    @DeleteMapping("remove/{boardId}")
+    @DeleteMapping("/remove/{boardId}")
     public ResponseEntity<Map<String, Object>> removeProduct(@PathVariable Long boardId) {
         
         Map<String, Object> response = new HashMap<>();
@@ -170,7 +188,7 @@ public class BoardController {
         }
     }
     
-    @PostMapping("update")
+    @PostMapping("/update")
     public ResponseEntity<Map<String, Object>> updateProduct(@RequestBody BoardVO vo) {
         
         Map<String, Object> response = new HashMap<>();

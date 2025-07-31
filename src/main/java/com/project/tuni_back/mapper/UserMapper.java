@@ -16,8 +16,6 @@ public interface UserMapper {
     UserVO findByEmail(String email);
 
     // 닉네임으로 사용자 찾는 메소드
-    UserVO findByNickname(String user_id);
-
     UserVO findByUserId(String userId);
     
     void updateUserId(@Param("oldUserId") String oldUserId, @Param("newUserId") String newUserId);

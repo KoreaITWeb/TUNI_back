@@ -84,7 +84,7 @@ public class ImageFileController {
     
     // 이미지 업로드
     @PostMapping(value="/upload", produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<ImageFileVO>> upload(MultipartFile[] uploadFile, @RequestParam Long boardId) {
+    public ResponseEntity<List<ImageFileVO>> upload(MultipartFile[] uploadFile, @RequestParam Long boardId, @RequestParam String representativeFileName) {
         
         List<ImageFileVO> fileList = new ArrayList<>();
         
@@ -127,6 +127,14 @@ public class ImageFileController {
             attach.setUuid(uuid.toString());
             attach.setUploadPath(datePath);  // DB에는 상대 경로(날짜 폴더)만 저장
             attach.setBoardId(boardId); // 프론트엔드에서 전달받은 boardId 설정
+            
+            // 대표 이미지 설정 로직 
+            // 현재 파일의 이름이 프론트에서 보낸 대표 파일 이름과 일치하는지 확인
+            if (originalFileName.equals(representativeFileName)) {
+                attach.setRepresentative(true);
+            } else {
+                attach.setRepresentative(false);
+            }
             
             try {
                 f.transferTo(saveFile);
@@ -188,7 +196,7 @@ public class ImageFileController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         Date date = new Date();
         String str = sdf.format(date);
-        return str.replace("-", File.separator);
+        return str.replace("-", "/");
     }
     
     /**

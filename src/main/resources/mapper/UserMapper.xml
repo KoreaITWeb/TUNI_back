@@ -13,7 +13,7 @@
         WHERE email = #{email}
     </select>
     
-    <select id="findByNickname" parameterType="java.lang.String" resultType="com.project.tuni_back.bean.vo.UserVO">
+    <select id="findByUserId" parameterType="java.lang.String" resultType="com.project.tuni_back.bean.vo.UserVO">
 	    SELECT * 
 	    FROM `users` 
 	    WHERE user_id = #{user_id}

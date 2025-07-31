@@ -91,13 +91,13 @@ public class AuthService {
     
     // 닉네임 중복 확인
     public boolean isNicknameAvailable(String nickname) {
-        return userMapper.findByNickname(nickname) == null;
+        return userMapper.findByUserId(nickname) == null;
     }
     
     // 신규 회원 가입
     public JwtTokenDto registerNewUser(RegisterRequestDto dto) {
         // 1. 닉네임 중복 확인
-        UserVO existingUserByNickname = userMapper.findByNickname(dto.getUserId());
+        UserVO existingUserByNickname = userMapper.findByUserId(dto.getUserId());
         if (existingUserByNickname != null) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }

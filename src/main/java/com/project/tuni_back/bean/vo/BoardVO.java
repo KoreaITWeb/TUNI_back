@@ -9,6 +9,7 @@ public class BoardVO {
     private String userId;
     private String title;
     private String content; 
+    private String category;
     private String price;
     private String regdate;
     private Long likes;

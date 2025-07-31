@@ -10,5 +10,6 @@ public class SellProductDto {
 	private String price;
 	private String content;
 	private String userId;
+	private String category;
 	private Long schoolId;
 }
