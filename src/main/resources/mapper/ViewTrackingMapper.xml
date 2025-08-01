@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 연결할 인터페이스 정보를 namespace에 기술 -->
+<mapper namespace="com.project.tuni_back.mapper.ViewTrackingMapper">
+   <insert id="registerViews">
+   		INSERT INTO VIEWTRACKING(USER_ID, BOARD_ID)
+   		VALUES(#{userId}, #{boardId})
+   </insert>
+   <select id="readViews" resultType="com.project.tuni_back.bean.vo.ViewTrackingVO">
+   		SELECT USER_ID, BOARD_ID
+   		FROM VIEWTRACKING
+   		WHERE USER_ID = #{userId}
+   		AND   BOARD_ID = #{boardId}
+   </select>
+</mapper>

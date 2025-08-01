@@ -40,4 +40,9 @@
 	    SET SALE_STATUS = #{saleStatus}
 	    WHERE BOARD_ID = #{boardId}
 	</update>
+	<update id="updateViews">
+		UPDATE BOARD
+		SET VIEWS = VIEWS + 1
+		WHERE BOARD_ID = #{boardId}
+	</update>
 </mapper>
