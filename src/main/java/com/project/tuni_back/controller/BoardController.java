@@ -1,14 +1,14 @@
 package com.project.tuni_back.controller;
 
-import java.util.HashMap;
-import java.util.List;
+import java.nio.file.AccessDeniedException;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,214 +17,131 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.tuni_back.bean.vo.BoardVO;
-import com.project.tuni_back.bean.vo.ImageFileVO;
-import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.dto.SellProductDto;
-import com.project.tuni_back.mapper.BoardMapper;
-import com.project.tuni_back.mapper.ImageFileMapper;
-import com.project.tuni_back.mapper.UserMapper;
+import com.project.tuni_back.service.BoardService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
 @RequestMapping("/board")
+@RequiredArgsConstructor // final 필드의 생성자를 자동으로 만들어주는 Lombok 어노테이션
 public class BoardController {
-    
-    @Autowired
-    private BoardMapper mapper;
 
-    @Autowired
-    private UserMapper umapper;
-    
-    @Autowired
-    private ImageFileMapper imapper;
+    private final BoardService boardService; // @Autowired 대신 생성자 주입 사용
 
     // 게시글 등록 페이지 정보 조회
     @GetMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestParam String userId) {
+    public ResponseEntity<?> getRegisterInfo(@RequestParam String userId) {
         try {
-            Map<String, Object> response = new HashMap<>();
-            response.put("user", umapper.findByUserId(userId));
-            response.put("success", true);
-            
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of("success", true, "user", boardService.getRegisterInfo(userId)));
         } catch (Exception e) {
             log.error("게시글 등록 정보 조회 실패: {}", e.getMessage());
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "사용자 정보 조회에 실패했습니다.");
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "사용자 정보 조회에 실패했습니다."));
         }
     }
 
     // 게시글 등록
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> registerProduct(@RequestBody SellProductDto dto) {
-        Map<String, Object> response = new HashMap<>();
-        // log.info(""+dto);
+    public ResponseEntity<?> registerProduct(@RequestBody SellProductDto dto) {
         try {
-            BoardVO vo = new BoardVO();
-            vo.setUserId(dto.getUserId());
-            vo.setSchoolId(dto.getSchoolId());
-            vo.setTitle(dto.getTitle());
-            vo.setContent(dto.getContent());
-            vo.setPrice(dto.getPrice());
-            vo.setCategory(dto.getCategory());
-            
-            if (mapper.registerProduct(vo) > 0) {
-                log.info(dto.getUserId() + " 님이 글을 등록함");
-                response.put("success", true);
-                response.put("boardId", vo.getBoardId());
-                log.info(""+vo.getBoardId());
-                response.put("message", "게시글이 성공적으로 등록되었습니다.");
-                
-                return ResponseEntity.ok(response);
-            } else {
-                response.put("success", false);
-                response.put("message", "게시글 등록에 실패했습니다.");
-                
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-            }
+            BoardVO newBoard = boardService.registerProduct(dto);
+            return ResponseEntity.ok(Map.of("success", true, "boardId", newBoard.getBoardId(), "message", "게시글이 성공적으로 등록되었습니다."));
         } catch (Exception e) {
             log.error("게시글 등록 실패: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "게시글 등록 중 오류가 발생했습니다.");
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "게시글 등록 중 오류가 발생했습니다."));
         }
     }
 
     // 게시글 목록 조회
     @PostMapping("/list")
-    public ResponseEntity<Map<String, Object>> getProductList(@RequestParam Long schoolId, @RequestParam String userId) {
-        log.info(userId + " 상품 조회");
-        
+    public ResponseEntity<?> getProductList(@RequestParam Long schoolId, @RequestParam String userId) {
         try {
-            Map<String, Object> response = new HashMap<>();
-            response.put("user", umapper.findByUserId(userId));
-            response.put("list", mapper.getProductList(schoolId));
-            response.put("success", true);
-            
-            return ResponseEntity.ok(response);
+            Map<String, Object> data = boardService.getProductList(schoolId, userId);
+            data.put("success", true);
+            return ResponseEntity.ok(data);
         } catch (Exception e) {
             log.error("게시글 목록 조회 실패: {}", e.getMessage());
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "게시글 목록 조회에 실패했습니다.");
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "게시글 목록 조회에 실패했습니다."));
         }
     }
 
     // 게시글 상세 조회
     @GetMapping("/{boardId}")
-    public ResponseEntity<Map<String, Object>> readProduct(@PathVariable Long boardId) {
-        log.info("read on");
-        
+    public ResponseEntity<?> readProduct(@PathVariable Long boardId) {
         try {
-        	BoardVO board = mapper.readProduct(boardId);
-        	if (board == null) {
-                throw new IllegalArgumentException("존재하지 않는 게시물입니다.");
-            }
-            log.info("read : {}", board);
-            
-            //작성자 정보 조회
-        	UserVO user = umapper.findByUserId(board.getUserId());
-        	
-        	// 3. 이미지 목록 조회
-            List<ImageFileVO> images = imapper.getImageFile(boardId);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("board", board);
-            response.put("user", user);
-            response.put("images", images);
-            response.put("success", true);
-            
-            return ResponseEntity.ok(response);
+            Map<String, Object> data = boardService.getProductDetails(boardId);
+            data.put("success", true);
+            return ResponseEntity.ok(data);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
             log.error("게시글 조회 실패: {}", e.getMessage());
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "게시글 조회에 실패했습니다.");
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "게시글 조회에 실패했습니다."));
         }
     }
-    
-    @DeleteMapping("/{boardId}")
-    public ResponseEntity<Map<String, Object>> removeProduct(@PathVariable Long boardId) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            log.info("게시글 삭제 요청 - boardId: {}", boardId);
-            
-            // 게시글 삭제 실행
-            int deleteResult = mapper.removeProduct(boardId);
-            
-            if (deleteResult > 0) {
-                response.put("success", true);
-                response.put("message", "글 삭제에 성공하였습니다.");
-                response.put("deletedBoardId", boardId);
-                
-                log.info("게시글 삭제 성공 - boardId: {}", boardId);
-                return ResponseEntity.ok(response);
-            } else {
-                response.put("success", false);
-                response.put("message", "실패하였습니다.");
-                
-                log.warn("게시글 삭제 실패 - boardId: {}", boardId);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-            }
-            
-        } catch (Exception e) {
-            log.error("게시글 삭제 중 예외 발생 - boardId: {}, error: {}", boardId, e.getMessage(), e);
-            response.put("success", false);
-            response.put("message", "게시글 삭제 중 오류가 발생했습니다.");
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-    
+
+    // 게시글 수정
     @PostMapping("/update")
-    public ResponseEntity<Map<String, Object>> updateProduct(@RequestBody BoardVO vo) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
+    public ResponseEntity<?> updateProduct(@RequestBody BoardVO vo, Authentication authentication) {
         try {
-            log.info("게시글 수정 요청 - boardId: {}, title: '{}'", vo.getBoardId(), vo.getTitle());
-            
-            // 게시글 수정 실행
-            int updateResult = mapper.updateProduct(vo);
-            
-            if (updateResult > 0) {
-                response.put("success", true);
-                response.put("message", "글이 수정되었습니다.");
-                response.put("updatedBoardId", vo.getBoardId());
-                response.put("updatedBoard", vo);
-                
-                log.info("게시글 수정 성공 - boardId: {}, title: '{}'", 
-                        vo.getBoardId(), vo.getTitle());
-                
-                return ResponseEntity.ok(response);
-            } else {
-                response.put("success", false);
-                response.put("message", "글 수정에 실패하였습니다.");
-                
-                log.warn("게시글 수정 실패 - boardId: {}", vo.getBoardId());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            String currentUserId = authentication.getName();
+            if (boardService.updateProduct(vo, currentUserId)) {
+                return ResponseEntity.ok(Map.of("success", true, "message", "글이 수정되었습니다."));
             }
-            
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("success", false, "message", "글 수정에 실패하였습니다."));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            log.error("게시글 수정 중 예외 발생 - boardId: {}, error: {}", 
-                    vo.getBoardId(), e.getMessage(), e);
-            response.put("success", false);
-            response.put("message", "게시글 수정 중 오류가 발생했습니다.");
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            log.error("게시글 수정 중 예외 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "게시글 수정 중 오류가 발생했습니다."));
         }
     }
-  
+    
+    // 게시글 삭제
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<?> removeProduct(@PathVariable Long boardId, Authentication authentication) {
+        try {
+            String currentUserId = authentication.getName();
+            if (boardService.removeProduct(boardId, currentUserId)) {
+                return ResponseEntity.ok(Map.of("success", true, "message", "글 삭제에 성공하였습니다."));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("success", false, "message", "글 삭제에 실패하였습니다."));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("게시글 삭제 중 예외 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "게시글 삭제 중 오류가 발생했습니다."));
+        }
+    }
+    
+    /**
+     * 게시물 판매 상태 변경
+     */
+    @PatchMapping("/{boardId}/status")
+    public ResponseEntity<?> updateSaleStatus(
+            @PathVariable Long boardId,
+            @RequestBody Map<String, String> payload,
+            Authentication authentication // ◀️ 현재 로그인한 사용자 정보를 받아옴
+    ) {
+        try {
+            String currentUserId = authentication.getName(); // 로그인한 사용자의 ID (PK 또는 닉네임)
+            String saleStatus = payload.get("saleStatus");
+            
+            boardService.updateBoardStatus(boardId, saleStatus, currentUserId);
+            
+            return ResponseEntity.ok(Map.of("success", true, "message", "상태가 성공적으로 변경되었습니다."));
+            
+        } catch (AccessDeniedException e) {
+            // 서비스에서 권한 없음을 확인했을 때
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            // 게시물이 존재하지 않을 때
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("게시물 상태 변경 중 예외 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "상태 변경 중 오류가 발생했습니다."));
+        }
+    }
 }
