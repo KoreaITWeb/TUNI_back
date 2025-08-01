@@ -6,7 +6,7 @@ import com.project.tuni_back.bean.vo.ViewTrackingVO;
 
 @Mapper
 public interface ViewTrackingMapper {
-	public ViewTrackingVO readViews(String userId, Long boardId);
+	public int readViews(String userId, Long boardId);
 	public int registerViews(ViewTrackingVO vo);
 }
 

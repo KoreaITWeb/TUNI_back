@@ -6,8 +6,8 @@
    		INSERT INTO VIEWTRACKING(USER_ID, BOARD_ID)
    		VALUES(#{userId}, #{boardId})
    </insert>
-   <select id="readViews" resultType="com.project.tuni_back.bean.vo.ViewTrackingVO">
-   		SELECT USER_ID, BOARD_ID
+   <select id="readViews">
+   		SELECT COUNT(*)
    		FROM VIEWTRACKING
    		WHERE USER_ID = #{userId}
    		AND   BOARD_ID = #{boardId}
