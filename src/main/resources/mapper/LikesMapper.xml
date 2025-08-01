@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.tuni_back.mapper.LikesMapper">
+
+    <select id="findByUserAndBoard" resultType="com.project.tuni_back.bean.vo.LikesVO">
+        SELECT LIKE_ID, USER_ID, BOARD_ID
+        FROM LIKES
+        WHERE USER_ID = #{userId} AND BOARD_ID = #{boardId}
+    </select>
+
+    <insert id="insert" parameterType="com.project.tuni_back.bean.vo.LikesVO">
+        INSERT INTO LIKES (USER_ID, BOARD_ID)
+        VALUES (#{userId}, #{boardId})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM LIKES WHERE LIKE_ID = #{likeId}
+    </delete>
+
+</mapper>

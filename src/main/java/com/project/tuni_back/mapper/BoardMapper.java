@@ -15,4 +15,6 @@ public interface BoardMapper {
 	public int updateProduct(BoardVO vo);
 	int updateStatus(Long boardId, String saleStatus);
 	public int updateViews(Long boardId);
+	public int incrementLikes(Long boardId);
+	public int decrementLikes(Long boardId);
 }

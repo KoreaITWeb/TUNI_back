@@ -45,4 +45,14 @@
 		SET VIEWS = VIEWS + 1
 		WHERE BOARD_ID = #{boardId}
 	</update>
+	<update id="incrementLikes">
+		UPDATE BOARD
+		SET Likes = Likes + 1
+		WHERE BOARD_ID = #{boardId}
+	</update>
+	<update id="decrementLikes">
+		UPDATE BOARD
+		SET Likes = Likes - 1
+		WHERE BOARD_ID = #{boardId}
+	</update>
 </mapper>

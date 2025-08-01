@@ -10,10 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.tuni_back.bean.vo.BoardVO;
 import com.project.tuni_back.bean.vo.ImageFileVO;
+import com.project.tuni_back.bean.vo.LikesVO;
 import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.dto.SellProductDto;
 import com.project.tuni_back.mapper.BoardMapper;
 import com.project.tuni_back.mapper.ImageFileMapper;
+import com.project.tuni_back.mapper.LikesMapper;
 import com.project.tuni_back.mapper.UserMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class BoardService {
     private final BoardMapper boardMapper;
     private final UserMapper userMapper;
     private final ImageFileMapper imageFileMapper;
+    private final LikesMapper likesMapper;
 
     /**
      * 게시글 등록 페이지에 필요한 사용자 정보를 조회합니다.
@@ -148,5 +151,24 @@ public class BoardService {
 
         // 3. 권한이 있다면 상태를 변경합니다.
         return boardMapper.updateStatus(boardId, saleStatus) > 0;
+    }
+    
+    @Transactional
+    public boolean toggleLike(Long boardId, String currentUserId) {
+        // LikesVO는 userId와 boardId를 필드로 가집니다.
+        LikesVO existingLike = likesMapper.findByUserAndBoard(currentUserId, boardId);
+
+        if (existingLike != null) {
+            // 이미 좋아요를 눌렀으면 -> 좋아요 취소
+            likesMapper.delete(existingLike.getLikeId());
+            boardMapper.decrementLikes(boardId);
+            return false; // "좋아요 취소됨"을 의미
+        } else {
+            // 좋아요를 누르지 않았으면 -> 좋아요 추가
+            LikesVO newLike = new LikesVO(currentUserId, boardId);
+            likesMapper.insert(newLike);
+            boardMapper.incrementLikes(boardId);
+            return true; // "좋아요 처리됨"을 의미
+        }
     }
 }
