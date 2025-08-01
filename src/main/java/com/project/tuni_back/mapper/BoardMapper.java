@@ -14,5 +14,5 @@ public interface BoardMapper {
 	public int removeProduct(Long boardId);
 	public int updateProduct(BoardVO vo);
 	int updateStatus(Long boardId, String saleStatus);
-	public void updateViews();
+	public int updateViews(Long boardId);
 }
