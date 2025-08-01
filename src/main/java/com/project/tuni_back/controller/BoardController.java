@@ -69,9 +69,12 @@ public class BoardController {
 
     // 게시글 상세 조회
     @GetMapping("/{boardId}")
-    public ResponseEntity<?> readProduct(@PathVariable Long boardId) {
+    public ResponseEntity<?> readProduct(@PathVariable Long boardId, Authentication authentication) {
         try {
-            Map<String, Object> data = boardService.getProductDetails(boardId);
+        	// 현재 사용자 ID를 확인하고 서비스에 전달 
+            String userId = (authentication != null) ? authentication.getName() : null;
+            log.info(userId);
+            Map<String, Object> data = boardService.getProductDetails(boardId, userId);
             data.put("success", true);
             return ResponseEntity.ok(data);
         } catch (IllegalArgumentException e) {
@@ -142,6 +145,18 @@ public class BoardController {
         } catch (Exception e) {
             log.error("게시물 상태 변경 중 예외 발생: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "상태 변경 중 오류가 발생했습니다."));
+        }
+    }
+    
+    @PostMapping("/{boardId}/like")
+    public ResponseEntity<?> toggleLike(@PathVariable Long boardId, Authentication authentication) {
+        try {
+            String currentUserId = authentication.getName();
+            boolean isLiked = boardService.toggleLike(boardId, currentUserId);
+            
+            return ResponseEntity.ok(Map.of("isLiked", isLiked, "message", "요청 성공"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
         }
     }
 }

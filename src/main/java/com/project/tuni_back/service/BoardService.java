@@ -78,18 +78,25 @@ public class BoardService {
      * @param boardId 게시글 ID
      * @return 상세 정보를 담은 Map
      */
-    public Map<String, Object> getProductDetails(Long boardId) {
+    public Map<String, Object> getProductDetails(Long boardId, String userId) {
         BoardVO board = boardMapper.readProduct(boardId);
         if (board == null) {
             throw new IllegalArgumentException("존재하지 않는 게시물입니다.");
         }
-        UserVO user = userMapper.findByUserId(board.getUserId());
+        // UserVO user = userMapper.findByUserId(userId);
         List<ImageFileVO> images = imageFileMapper.getImageFile(boardId);
+        
+        boolean isLikedByUser = false;
+        if (userId != null) {
+            // 로그인한 사용자일 경우에만 좋아요 여부 확인
+            isLikedByUser = likesMapper.findByUserAndBoard(userId, boardId) != null;
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("board", board);
-        response.put("user", user);
+        // response.put("user", user);
         response.put("images", images);
+        response.put("isLikedByUser", isLikedByUser);
         return response;
     }
 
@@ -154,9 +161,9 @@ public class BoardService {
     }
     
     @Transactional
-    public boolean toggleLike(Long boardId, String currentUserId) {
+    public boolean toggleLike(Long boardId, String userId) {
         // LikesVO는 userId와 boardId를 필드로 가집니다.
-        LikesVO existingLike = likesMapper.findByUserAndBoard(currentUserId, boardId);
+        LikesVO existingLike = likesMapper.findByUserAndBoard(userId, boardId);
 
         if (existingLike != null) {
             // 이미 좋아요를 눌렀으면 -> 좋아요 취소
@@ -165,7 +172,7 @@ public class BoardService {
             return false; // "좋아요 취소됨"을 의미
         } else {
             // 좋아요를 누르지 않았으면 -> 좋아요 추가
-            LikesVO newLike = new LikesVO(currentUserId, boardId);
+            LikesVO newLike = new LikesVO(userId, boardId);
             likesMapper.insert(newLike);
             boardMapper.incrementLikes(boardId);
             return true; // "좋아요 처리됨"을 의미
