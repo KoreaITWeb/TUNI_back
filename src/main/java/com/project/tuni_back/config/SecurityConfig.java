@@ -9,15 +9,24 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.project.tuni_back.jwt.JwtAuthenticationFilter;
+import com.project.tuni_back.jwt.JwtTokenProvider;
+
+import lombok.RequiredArgsConstructor;
+
 
 @Configuration
 @EnableWebSecurity // Spring Security 설정을 활성화합니다.
+@RequiredArgsConstructor
 public class SecurityConfig {
 
+	private final JwtTokenProvider jwtTokenProvider;
+	
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -38,7 +47,8 @@ public class SecurityConfig {
                 .requestMatchers("/**", "**").permitAll()
                 // 그 외의 모든 요청은 반드시 인증을 거쳐야 함
                 .anyRequest().authenticated()
-            );
+            )
+            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);;
 
         return http.build();
     }

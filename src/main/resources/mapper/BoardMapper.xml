@@ -14,7 +14,7 @@
 	   ORDER BY B.BOARD_ID DESC
 	</select>
 	<select id="readProduct" resultType="com.project.tuni_back.bean.vo.BoardVO"> 
-		SELECT BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE, REGDATE, LIKES, VIEWS, CATEGORY 
+		SELECT BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE, REGDATE, LIKES, VIEWS, CATEGORY, SALE_STATUS 
 		FROM BOARD 
 		WHERE BOARD_ID = #{boardId} 
 	</select>
@@ -34,5 +34,10 @@
 		UPDATE BOARD 
 		SET TITLE = #{title}, CONTENT = #{content}, PRICE = #{price} 
 		WHERE BOARD_ID = #{boardId} 
+	</update>
+	<update id="updateStatus">
+	    UPDATE BOARD
+	    SET SALE_STATUS = #{saleStatus}
+	    WHERE BOARD_ID = #{boardId}
 	</update>
 </mapper>

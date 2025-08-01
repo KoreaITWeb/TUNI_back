@@ -55,7 +55,7 @@ public class JwtTokenProvider {
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + accessTokenValidityInMilliseconds);
         String accessToken = Jwts.builder()
-                .setSubject(user.getEmail())
+                .setSubject(user.getUserId())
                 .claim("auth", "ROLE_USER") // 권한 설정
                 .claim("userId", user.getUserId())
                 .claim("schoolId", user.getSchoolId())

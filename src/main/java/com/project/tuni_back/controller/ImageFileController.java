@@ -96,11 +96,11 @@ public class ImageFileController {
             uploadPath.mkdirs(); // 폴더 없으면 생성
         }
         
-        log.info("upload path : " + uploadPath);
+        // log.info("upload path : " + uploadPath);
         
         for(MultipartFile f : uploadFile) {
-            log.info("Upload Filename : " + f.getOriginalFilename());
-            log.info("Upload Filesize : " + f.getSize());
+            // log.info("Upload Filename : " + f.getOriginalFilename());
+            // log.info("Upload Filesize : " + f.getSize());
             
             // 이미지 파일만 처리하도록 사전 검증
             String contentType = f.getContentType();
@@ -175,7 +175,7 @@ public class ImageFileController {
     
     @GetMapping(value="/display", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<byte[]> getImage(@RequestParam("fileName") String fileName) {
-    	log.info(fileName);
+    	// log.info(fileName);
         File file = new File(uploadDir, fileName);
         ResponseEntity<byte[]> result = null;
         

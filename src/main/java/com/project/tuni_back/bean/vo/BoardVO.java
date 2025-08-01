@@ -15,4 +15,5 @@ public class BoardVO {
     private Long likes;
     private Long views;
     private String thumbnailUrl;
+    private String saleStatus;
 }
