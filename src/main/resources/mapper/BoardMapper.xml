@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- 연결할 인터페이스 정보를 namespace에 기술 -->
-<mapper namespace="com.project.tuni_back.mapper.BoardMapper">
+<mapper namespace="com.project.tuni_back.mapper.BoardMapper"> 
    	<select id="getProductList" resultType="com.project.tuni_back.bean.vo.BoardVO"> 
 	   SELECT B.BOARD_ID, B.SCHOOL_ID, B.USER_ID, B.TITLE, B.CONTENT, B.PRICE, B.REGDATE, B.LIKES, B.VIEWS, 
 	   (
