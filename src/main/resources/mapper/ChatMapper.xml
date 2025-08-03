@@ -43,14 +43,21 @@
   	UPDATE chat_room_list
     SET 
         buyer_id = CASE 
-            WHEN buyer_id = #{userId} THEN buyer_id is null
+            WHEN buyer_id = #{userId} THEN buyer_id = null
             ELSE buyer_id 
         END,
         seller_id = CASE 
-            WHEN seller_id = #{userId} THEN seller_id is null
+            WHEN seller_id = #{userId} THEN seller_id = null
             ELSE seller_id 
         END
     WHERE chat_id = #{chatId}
   </update>
+  
+  <!-- ChatMapper.xml에 추가 -->
+<select id="getChatRoomById" resultType="com.project.tuni_back.bean.vo.ChatRoomListVO">
+    SELECT chat_id, buyer_id, seller_id, board_id, regdate
+    FROM chat_room_list
+    WHERE chat_id = #{chatId}
+</select>
 	
 </mapper>
