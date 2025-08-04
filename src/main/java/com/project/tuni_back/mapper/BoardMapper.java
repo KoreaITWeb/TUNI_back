@@ -5,10 +5,10 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.project.tuni_back.bean.vo.BoardVO;
-
 @Mapper
 public interface BoardMapper {
 	public List<BoardVO> getProductList(Long schoolId);
+	public List<BoardVO> getProductList(String userId);
 	public BoardVO readProduct(Long boardId);
 	public int registerProduct(BoardVO vo);
 	public int removeProduct(Long boardId);

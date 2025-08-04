@@ -14,4 +14,5 @@ public interface ChatMapper {
 	public List<ChatRoomListVO> getChatRoomsByUserId(String userId);
 	public List<ChatMessageVO> getMessagesByChatId(Long chatId);
 	public int quitChatRoom(String userId, Long chatId);
+	public ChatRoomListVO getChatRoomById(Long chatId);
 }

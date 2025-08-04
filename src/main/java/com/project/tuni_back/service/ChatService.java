@@ -15,6 +15,12 @@ import lombok.RequiredArgsConstructor;
 public class ChatService {
 
     private final ChatMapper chatMapper;
+    
+ // ChatService.java에 추가
+    public ChatRoomListVO getChatRoomById(Long chatId) {
+        // 채팅방 ID로 채팅방 정보 조회 (buyerId, sellerId 포함)
+        return chatMapper.getChatRoomById(chatId);
+    }
 
     public void saveMessage(ChatMessageVO message) {
         chatMapper.registerChatMessage(message);
