@@ -74,7 +74,14 @@ public class BoardService {
         response.put("list", list);
         return response;
     }
-
+    /**
+     * 특정 사용자가 등록한 상품 목록을 조회합니다.
+     * @param userId 사용자 ID
+     * @return 사용자가 등록한 상품 목록
+     */
+    public List<BoardVO> getProductListByUserId(Long schoolId, String userId) {
+        return boardMapper.getProductListByUserId(userId);
+    }
     /**
      * 게시글 상세 정보(게시글, 작성자, 이미지)를 조회합니다.
      * @param boardId 게시글 ID
@@ -192,4 +199,6 @@ public class BoardService {
             return true; // "좋아요 처리됨"을 의미
         }
     }
+
+	
 }
