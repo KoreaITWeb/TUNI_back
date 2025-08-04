@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -125,6 +126,23 @@ public class AuthService {
         UserVO user = userMapper.findByEmail(dto.getEmail());
         return jwtTokenProvider.generateToken(user);
     }
+    
+    // 토큰 재발급 로직
+    public String reissueAccessToken(String refreshToken) {
+        // 1. Refresh Token 검증 (유효성, 만료 시간 등)
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new SecurityException("Invalid refresh token.");
+        }
+
+        // 2. Refresh Token에서 사용자 정보 추출
+        Authentication authentication = jwtTokenProvider.getAuthenticationFromRefreshToken(refreshToken); // RefreshToken용 인증 추출 메소드 필요
+
+        // 3. 새로운 Access Token 생성
+        UserVO user = userMapper.findByUserId(authentication.getName());
+        return jwtTokenProvider.generateAccessToken(user); // Access Token만 생성하는 메소드 필요
+    }
+    
+    
     
 //	public JwtTokenDto verifyCodeAndLogin(RegisterRequestDto dto) {
 //		// 1. Redis에서 인증 코드 가져오기

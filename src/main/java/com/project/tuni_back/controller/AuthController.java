@@ -4,10 +4,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import com.project.tuni_back.dto.RegisterRequestDto;
 import com.project.tuni_back.mapper.UserMapper;
 import com.project.tuni_back.service.AuthService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -92,5 +94,32 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
     
+    // 토큰 만료시 재발급해주는 로직
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+        try {
+            // 요청 헤더나 쿠키에서 Refresh Token을 추출
+            String refreshToken = resolveRefreshToken(request); // 이 함수는 직접 구현해야 함
+            
+            // 서비스를 통해 새로운 Access Token 발급
+            String newAccessToken = authService.reissueAccessToken(refreshToken);
+            
+            return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", e.getMessage()));
+        }
+    }
     
+    /**
+     * Request Header에서 Refresh Token 정보를 추출합니다.
+     * @param request HttpServletRequest 객체
+     * @return 추출된 Refresh Token (Bearer 제거)
+     */
+    private String resolveRefreshToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization-Refresh");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
 }

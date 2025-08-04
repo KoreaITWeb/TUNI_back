@@ -21,9 +21,7 @@ import com.project.tuni_back.dto.JwtTokenDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -50,21 +48,14 @@ public class JwtTokenProvider {
      * Access Token과 Refresh Token을 생성
      */
     public JwtTokenDto generateToken(UserVO user) {
-        long now = (new Date()).getTime();
-
         // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + accessTokenValidityInMilliseconds);
-        String accessToken = Jwts.builder()
-                .setSubject(user.getUserId())
-                .claim("auth", "ROLE_USER") // 권한 설정
-                .claim("userId", user.getUserId())
-                .claim("schoolId", user.getSchoolId())
-                .setExpiration(accessTokenExpiresIn)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+        String accessToken = generateAccessToken(user);
 
+        
         // Refresh Token 생성
+        long now = (new Date()).getTime();
         String refreshToken = Jwts.builder()
+        		.setSubject(user.getUserId())
                 .setExpiration(new Date(now + refreshTokenValidityInMilliseconds))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -74,6 +65,36 @@ public class JwtTokenProvider {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+    
+    // Access Token만 생성하는 메소드
+    public String generateAccessToken(UserVO user) {
+        long now = (new Date()).getTime();
+        Date accessTokenExpiresIn = new Date(now + accessTokenValidityInMilliseconds);
+        
+        return Jwts.builder()
+                .setSubject(user.getUserId())
+                .claim("auth", "ROLE_USER")
+                .claim("userId", user.getUserId())
+                .claim("schoolId", user.getSchoolId())
+                .setExpiration(accessTokenExpiresIn)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+    
+    // Refresh Token에서 인증 정보 추출
+    public Authentication getAuthenticationFromRefreshToken(String token) {
+        Claims claims = parseClaims(token);
+
+        // Refresh Token에는 기본적인 사용자 ID와 권한 정보만 담아 인증 객체를 생성
+        // 상세 정보는 서비스 레이어에서 DB 조회를 통해 다시 가져옴
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(new String[]{"ROLE_USER"}) // 단순 권한 부여
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+        UserDetails principal = new User(claims.getSubject(), "", authorities);
+        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
     /**
@@ -101,19 +122,8 @@ public class JwtTokenProvider {
      * 토큰 유효성 검증
      */
     public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
-        } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
-        } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 토큰입니다.");
-        } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
-        }
-        return false;
+        Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+        return true;
     }
 
     private Claims parseClaims(String accessToken) {

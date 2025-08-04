@@ -139,7 +139,7 @@ public class ImageFileController {
             try {
                 f.transferTo(saveFile);
                 
-                log.info("Image file uploaded successfully: " + originalFileName);
+                // log.info("Image file uploaded successfully: " + originalFileName);
                 
                 // 이미지 파일이므로 항상 섬네일 생성
                 FileOutputStream thumbnail = 
@@ -155,7 +155,7 @@ public class ImageFileController {
                 // DB에 파일 정보 저장
                 int result = fmapper.insert(attach);
                 if(result > 0) {
-                    log.info("Image file info saved to DB: " + originalFileName);
+                    // log.info("Image file info saved to DB: " + originalFileName);
                     fileList.add(attach);
                 } else {
                     log.error("Failed to save image file info to DB: " + originalFileName);
@@ -169,7 +169,6 @@ public class ImageFileController {
             }
         }
         
-        log.info("ResponseBody");
         return ResponseEntity.ok(fileList);
     }
     
