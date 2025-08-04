@@ -7,7 +7,11 @@
         FROM LIKES
         WHERE USER_ID = #{userId} AND BOARD_ID = #{boardId}
     </select>
-
+	<select id="findBoardIdsByUserId" resultType="long">
+	    SELECT BOARD_ID
+	    FROM LIKES
+	    WHERE USER_ID = #{userId}
+	</select>
     <insert id="insert" parameterType="com.project.tuni_back.bean.vo.LikesVO">
         INSERT INTO LIKES (USER_ID, BOARD_ID)
         VALUES (#{userId}, #{boardId})

@@ -18,6 +18,14 @@
 		FROM BOARD 
 		WHERE BOARD_ID = #{boardId} 
 	</select>
+	<select id="findBoardsById" resultType="com.project.tuni_back.bean.vo.BoardVO">
+	    SELECT BOARD_ID, SCHOOL_ID, USER_ID, TITLE, CONTENT, PRICE, REGDATE, LIKES, VIEWS, CATEGORY, SALE_STATUS
+	    FROM BOARD
+	    WHERE BOARD_ID IN
+	    <foreach item="id" collection="boardId" open="(" separator="," close=")">
+	        #{id}
+	    </foreach>
+	</select>
 	<insert id="registerProduct" parameterType="com.project.tuni_back.bean.vo.BoardVO">
 	    <selectKey keyProperty="boardId" resultType="long" order="BEFORE">
 	        SELECT NEXTVAL(SEQ_BOARD)
