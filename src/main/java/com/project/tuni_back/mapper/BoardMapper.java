@@ -17,4 +17,5 @@ public interface BoardMapper {
 	public int updateViews(Long boardId);
 	public int incrementLikes(Long boardId);
 	public int decrementLikes(Long boardId);
+	int resetViews(Long boardId);
 }

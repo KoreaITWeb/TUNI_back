@@ -17,6 +17,7 @@ import com.project.tuni_back.mapper.BoardMapper;
 import com.project.tuni_back.mapper.ImageFileMapper;
 import com.project.tuni_back.mapper.LikesMapper;
 import com.project.tuni_back.mapper.UserMapper;
+import com.project.tuni_back.mapper.ViewTrackingMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +29,7 @@ public class BoardService {
     private final UserMapper userMapper;
     private final ImageFileMapper imageFileMapper;
     private final LikesMapper likesMapper;
+    private final ViewTrackingMapper viewMapper;
 
     /**
      * 게시글 등록 페이지에 필요한 사용자 정보를 조회합니다.
@@ -107,6 +109,7 @@ public class BoardService {
      * @return 수정 성공 여부
      * @throws AccessDeniedException 소유자가 아닐 경우 발생
      */
+    @Transactional
     public boolean updateProduct(BoardVO vo, String currentUserId) throws AccessDeniedException {
         BoardVO board = boardMapper.readProduct(vo.getBoardId());
         if (board == null) {
@@ -115,7 +118,18 @@ public class BoardService {
         if (!board.getUserId().equals(currentUserId)) {
             throw new AccessDeniedException("이 게시물을 수정할 권한이 없습니다.");
         }
-        return boardMapper.updateProduct(vo) > 0;
+        // 게시물 내용 업데이트
+        int updateResult = boardMapper.updateProduct(vo);
+        
+        // 게시물 조회수 초기화
+        viewMapper.deleteByBoardId(vo.getBoardId());
+
+        if (updateResult > 0) {
+            // 내용 수정이 성공하면, 조회수를 0으로 초기화
+            boardMapper.resetViews(vo.getBoardId());
+            return true;
+        }
+        return false;
     }
 
     /**

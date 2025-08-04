@@ -55,4 +55,9 @@
 		SET Likes = Likes - 1
 		WHERE BOARD_ID = #{boardId}
 	</update>
+	<update id="resetViews">
+	    UPDATE BOARD
+	    SET VIEWS = 0
+	    WHERE BOARD_ID = #{boardId}
+	</update>
 </mapper>

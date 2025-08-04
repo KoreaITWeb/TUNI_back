@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.tuni_back.bean.vo.BoardVO;
+import com.project.tuni_back.dto.BoardListRequestDto;
 import com.project.tuni_back.dto.SellProductDto;
 import com.project.tuni_back.service.BoardService;
 
@@ -56,9 +57,9 @@ public class BoardController {
 
     // 게시글 목록 조회
     @PostMapping("/list")
-    public ResponseEntity<?> getProductList(@RequestParam Long schoolId, @RequestParam String userId) {
+    public ResponseEntity<?> getProductList(@RequestBody BoardListRequestDto dto) {
         try {
-            Map<String, Object> data = boardService.getProductList(schoolId, userId);
+            Map<String, Object> data = boardService.getProductList(dto.getSchoolId(), dto.getUserId());
             data.put("success", true);
             return ResponseEntity.ok(data);
         } catch (Exception e) {

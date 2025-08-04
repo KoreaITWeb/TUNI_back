@@ -12,4 +12,8 @@
    		WHERE USER_ID = #{userId}
    		AND   BOARD_ID = #{boardId}
    </select>
+   <delete id="deleteByBoardId">
+	    DELETE FROM VIEWTRACKING
+	    WHERE BOARD_ID = #{boardId}
+	</delete>
 </mapper>

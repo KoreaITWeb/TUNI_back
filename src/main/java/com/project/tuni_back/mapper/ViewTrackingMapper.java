@@ -8,5 +8,6 @@ import com.project.tuni_back.bean.vo.ViewTrackingVO;
 public interface ViewTrackingMapper {
 	public int readViews(String userId, Long boardId);
 	public int registerViews(ViewTrackingVO vo);
+	int deleteByBoardId(Long boardId);
 }
 
