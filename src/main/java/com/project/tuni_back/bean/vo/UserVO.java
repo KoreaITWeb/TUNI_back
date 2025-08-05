@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class UserVO {
 	private String userId;
-	private int schoolId;
+	private Long schoolId;
 	private String email;
 	private String profileImg;
 }

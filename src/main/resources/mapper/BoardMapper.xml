@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- 연결할 인터페이스 정보를 namespace에 기술 -->
-<mapper namespace="com.project.tuni_back.mapper.BoardMapper"> 
+<mapper namespace="com.project.tuni_back.mapper.BoardMapper">
    	<select id="getProductList" resultType="com.project.tuni_back.bean.vo.BoardVO"> 
-	   SELECT B.BOARD_ID, B.SCHOOL_ID, B.USER_ID, B.TITLE, B.CONTENT, B.PRICE, B.REGDATE, B.LIKES, B.VIEWS, 
+	   SELECT B.BOARD_ID, B.SCHOOL_ID, B.USER_ID, B.TITLE, B.CONTENT, B.PRICE, B.REGDATE, B.LIKES, B.VIEWS, B.CATEGORY, 
 	   (
             SELECT CONCAT('/images/display?fileName=', REPLACE(I.UPLOAD_PATH, '\\', '/'), '/s_', I.UUID, '_', I.FILE_NAME)
             FROM IMAGEFILE I
@@ -87,4 +87,33 @@
 	    SET VIEWS = 0
 	    WHERE BOARD_ID = #{boardId}
 	</update>
+	<select id="getLatestProducts" resultType="com.project.tuni_back.bean.vo.BoardVO">
+	    SELECT
+	        B.BOARD_ID, B.TITLE, B.PRICE, B.REGDATE, S.NAME AS schoolName,
+	        (
+	            SELECT CONCAT('/images/display?fileName=', REPLACE(I.UPLOAD_PATH, '\\', '/'), '/s_', I.UUID, '_', I.FILE_NAME)
+	            FROM IMAGEFILE I
+	            WHERE I.BOARD_ID = B.BOARD_ID AND I.IS_REPRESENTATIVE = TRUE
+	            LIMIT 1
+	        ) AS thumbnailUrl 
+	    FROM BOARD B
+	    JOIN SCHOOL S ON B.SCHOOL_ID = S.SCHOOL_ID
+	    ORDER BY B.BOARD_ID DESC
+	    LIMIT 4
+	</select>
+	<select id="getLatestProductsBySchool" resultType="com.project.tuni_back.bean.vo.BoardVO">
+    SELECT
+        B.BOARD_ID, B.TITLE, B.PRICE, B.REGDATE, B.LIKES,
+        (
+            SELECT CONCAT('/images/display?fileName=', REPLACE(I.UPLOAD_PATH, '\\', '/'), '/s_', I.UUID, '_', I.FILE_NAME)
+            FROM IMAGEFILE I
+            WHERE I.BOARD_ID = B.BOARD_ID AND I.IS_REPRESENTATIVE = TRUE
+            LIMIT 1
+        ) AS thumbnailUrl, 
+        (SELECT COUNT(*) > 0 FROM LIKES L WHERE L.BOARD_ID = B.BOARD_ID AND L.USER_ID = #{userId}) AS isLikedByUser
+    FROM BOARD B
+    WHERE B.SCHOOL_ID = #{schoolId}
+    ORDER BY B.BOARD_ID DESC
+    LIMIT 4
+</select>
 </mapper>

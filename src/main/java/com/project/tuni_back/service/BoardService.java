@@ -74,6 +74,7 @@ public class BoardService {
         response.put("list", list);
         return response;
     }
+    
     /**
      * 특정 사용자가 등록한 상품 목록을 조회합니다.
      * @param userId 사용자 ID
@@ -82,6 +83,7 @@ public class BoardService {
     public List<BoardVO> getProductListByUserId(Long schoolId, String userId) {
         return boardMapper.getProductListByUserId(userId);
     }
+
     /**
      * 게시글 상세 정보(게시글, 작성자, 이미지)를 조회합니다.
      * @param boardId 게시글 ID
@@ -199,6 +201,15 @@ public class BoardService {
             return true; // "좋아요 처리됨"을 의미
         }
     }
-
-	
+    
+ 	// 최근 등록 상품 조회
+    public List<BoardVO> getLatestProducts(Long schoolId) {
+        if (schoolId != null) {
+            // 로그인 상태: 학교 ID 기준 + 좋아요 여부 포함
+            return boardMapper.getLatestProductsBySchool(schoolId);
+        } else {
+            // 비로그인 상태: 전체 최신
+            return boardMapper.getLatestProducts();
+        }
+    }
 }

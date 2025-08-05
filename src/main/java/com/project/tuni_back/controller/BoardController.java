@@ -1,6 +1,7 @@
 package com.project.tuni_back.controller;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -17,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.tuni_back.bean.vo.BoardVO;
+import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.dto.BoardListRequestDto;
 import com.project.tuni_back.dto.SellProductDto;
+import com.project.tuni_back.mapper.UserMapper;
 import com.project.tuni_back.service.BoardService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor // final 필드의 생성자를 자동으로 만들어주는 Lombok 어노테이션
 public class BoardController {
 
+	private final UserMapper userMapper;
     private final BoardService boardService; // @Autowired 대신 생성자 주입 사용
 
     // 게시글 등록 페이지 정보 조회
@@ -159,5 +163,19 @@ public class BoardController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
         }
+    }
+    
+    @GetMapping("/latest")
+    public ResponseEntity<?> getLatestProducts(Authentication authentication) {
+        String currentUserId = (authentication != null) ? authentication.getName() : null;
+        Long currentUserSchoolId = null;
+
+        if (currentUserId != null) {
+            UserVO user = userMapper.findByUserId(currentUserId);
+            currentUserSchoolId = user.getSchoolId();
+        }
+        
+        List<BoardVO> products = boardService.getLatestProducts(currentUserSchoolId);
+        return ResponseEntity.ok(products);
     }
 }
