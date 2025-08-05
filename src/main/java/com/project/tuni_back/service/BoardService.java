@@ -192,4 +192,15 @@ public class BoardService {
             return true; // "좋아요 처리됨"을 의미
         }
     }
+    
+ 	// 최근 등록 상품 조회
+    public List<BoardVO> getLatestProducts(Long schoolId) {
+        if (schoolId != null) {
+            // 로그인 상태: 학교 ID 기준 + 좋아요 여부 포함
+            return boardMapper.getLatestProductsBySchool(schoolId);
+        } else {
+            // 비로그인 상태: 전체 최신
+            return boardMapper.getLatestProducts();
+        }
+    }
 }

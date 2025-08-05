@@ -18,4 +18,6 @@ public interface BoardMapper {
 	public int incrementLikes(Long boardId);
 	public int decrementLikes(Long boardId);
 	int resetViews(Long boardId);
+	public List<BoardVO> getLatestProducts();
+	public List<BoardVO> getLatestProductsBySchool(Long schoolId);
 }

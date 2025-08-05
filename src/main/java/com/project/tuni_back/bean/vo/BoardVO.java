@@ -14,6 +14,7 @@ public class BoardVO {
     private String regdate;
     private Long likes;
     private Long views;
-    private String thumbnailUrl;
     private String saleStatus;
+    private String thumbnailUrl;
+    private String schoolName;
 }
