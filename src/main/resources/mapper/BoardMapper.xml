@@ -14,13 +14,14 @@
 	   ORDER BY B.BOARD_ID DESC
 	</select>
 	<select id="getProductListByUserId" resultType="com.project.tuni_back.bean.vo.BoardVO"> 
-	   SELECT B.BOARD_ID, B.SCHOOL_ID, B.USER_ID, B.TITLE, B.CONTENT, B.PRICE, B.REGDATE, B.LIKES, B.VIEWS, 
+	   SELECT B.BOARD_ID, B.SCHOOL_ID, B.USER_ID, B.TITLE, B.CONTENT, B.PRICE, B.REGDATE, B.LIKES, B.VIEWS, B.SALE_STATUS,
 	   (
             SELECT CONCAT('/images/display?fileName=', REPLACE(I.UPLOAD_PATH, '\\', '/'), '/s_', I.UUID, '_', I.FILE_NAME)
             FROM IMAGEFILE I
             WHERE I.BOARD_ID = B.BOARD_ID AND I.IS_REPRESENTATIVE = TRUE
             LIMIT 1
-        ) AS thumbnailUrl 
+        ) AS thumbnailUrl,
+       B.SALE_STATUS AS saleStatus 
 	   FROM BOARD B 
 	   WHERE B.USER_ID = #{userId} 
 	   ORDER BY B.BOARD_ID DESC
