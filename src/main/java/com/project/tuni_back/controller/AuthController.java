@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -85,8 +87,10 @@ public class AuthController {
     /**
      * 최종 회원가입을 처리하는 API
      */
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequestDto dto) {
+    @PostMapping(value= "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> register(@ModelAttribute RegisterRequestDto dto) {
+    	System.out.println("profileImg isEmpty? " + dto.getProfileImg().isEmpty());
+
     	authService.verifyCode(dto); // 최종 가입 전 코드 재검증
     	Map<String, Object> response = new HashMap<>();
     	response.put("message", "회원 가입에 성공했습니다.");
