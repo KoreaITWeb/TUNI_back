@@ -1,5 +1,6 @@
 package com.project.tuni_back.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.tuni_back.bean.vo.BoardVO;
 import com.project.tuni_back.bean.vo.UniversityVO;
 import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.mapper.UserMapper;
@@ -25,7 +27,7 @@ public class MypageController {
 	
 	private final MypageService mypageService;
 	private final UserMapper userMapper;
-	
+
 	
 //	@GetMapping("/{userId}")
 //    public ResponseEntity<UserVO> getUserId(@PathVariable("userId") String userId) {
@@ -52,5 +54,11 @@ public class MypageController {
             @RequestParam String newUserId) {
     	mypageService.updateUserId(oldUserId, newUserId);
         return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/{userId}/likes")
+    public ResponseEntity<List<BoardVO>> getLikedBoards(@PathVariable String userId) {
+        List<BoardVO> likedBoards = mypageService.getLikedBoardsByUser(userId);
+        return ResponseEntity.ok(likedBoards);
     }
 }

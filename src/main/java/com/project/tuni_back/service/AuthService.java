@@ -1,12 +1,16 @@
 package com.project.tuni_back.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.project.tuni_back.bean.vo.UniversityVO;
 import com.project.tuni_back.bean.vo.UserVO;
@@ -30,6 +34,9 @@ public class AuthService {
 	private final UniversityMapper universityMapper;
 	private final JwtTokenProvider jwtTokenProvider; // JWT 생성 유틸리티 클래스
 
+	@Value("${servlet.multipart.location}")
+	private String uploadBasePath;
+	
 	/**
      * 모든 대학교 목록을 조회
      */
@@ -107,10 +114,21 @@ public class AuthService {
 		UniversityVO university = universityMapper.findByDomain(domain);
         // 2. 신규 유저 객체 생성
         UserVO newUser = new UserVO();
+        String profileImgUrl;
+        
         newUser.setEmail(dto.getEmail());
         newUser.setUserId(dto.getUserId()); // 입력받은 닉네임으로 설정
         newUser.setSchoolId(university.getSchoolId());
         
+        if (dto.getProfileImg() == null || dto.getProfileImg().isEmpty()) {
+            profileImgUrl = "https://your-domain.com/images/default-profile.png";
+        } else {
+            // MultipartFile 저장 후 URL 반환하는 메서드 호출
+            profileImgUrl = saveFileAndGetUrl(dto.getProfileImg());
+        }
+
+        newUser.setProfileImg(profileImgUrl);
+
         userMapper.save(newUser);
 
         // 3. 가입 완료 후 Redis 코드 삭제 및 JWT 발급
@@ -142,7 +160,23 @@ public class AuthService {
         return jwtTokenProvider.generateAccessToken(user); // Access Token만 생성하는 메소드 필요
     }
     
-    
+    // 파일 저장 및 URL 반환 예시 (구현 필요)
+    private String saveFileAndGetUrl(MultipartFile file) {
+        String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        String filepath = "/upload/profile/" + filename;
+
+        try {
+            File dest = new File(uploadBasePath + filepath);
+            if (!dest.getParentFile().exists()) {
+                dest.getParentFile().mkdirs(); // 경로 없으면 폴더 생성
+            }
+            file.transferTo(dest);
+
+            return filepath; // 실제 서비스 도메인으로 변경
+        } catch (IOException e) {
+            throw new RuntimeException("프로필 이미지 저장 실패", e);
+        }
+    }
     
 //	public JwtTokenDto verifyCodeAndLogin(RegisterRequestDto dto) {
 //		// 1. Redis에서 인증 코드 가져오기
