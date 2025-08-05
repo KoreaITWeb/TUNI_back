@@ -7,4 +7,5 @@ public class UserVO {
 	private String userId;
 	private int schoolId;
 	private String email;
+	private String profileImg;
 }

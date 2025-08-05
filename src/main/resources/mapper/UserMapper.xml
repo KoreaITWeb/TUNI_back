@@ -3,8 +3,8 @@
 <!-- 연결할 인터페이스 정보를 namespace에 기술 -->
 <mapper namespace="com.project.tuni_back.mapper.UserMapper">
 	<insert id="save" parameterType="com.project.tuni_back.bean.vo.UserVO">
-        INSERT INTO `users` (user_id, school_id, email)
-        VALUES (#{userId}, #{schoolId}, #{email})
+        INSERT INTO `users` (user_id, school_id, email, profile_img)
+        VALUES (#{userId}, #{schoolId}, #{email}, #{profileImg})
     </insert>
 
     <select id="findByEmail" resultType="com.project.tuni_back.bean.vo.UserVO">
