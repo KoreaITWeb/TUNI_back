@@ -34,7 +34,7 @@ public class AuthService {
 	private final UniversityMapper universityMapper;
 	private final JwtTokenProvider jwtTokenProvider; // JWT 생성 유틸리티 클래스
 
-	@Value("${servlet.multipart.location}")
+	@Value("${spring.servlet.multipart.location}")
 	private String uploadBasePath;
 	
 	/**
