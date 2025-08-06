@@ -34,7 +34,7 @@ public class AuthService {
 	private final UniversityMapper universityMapper;
 	private final JwtTokenProvider jwtTokenProvider; // JWT 생성 유틸리티 클래스
 
-	@Value("${servlet.multipart.location}")
+	@Value("${spring.servlet.multipart.location}")
 	private String uploadBasePath;
 	
 	/**
@@ -163,7 +163,7 @@ public class AuthService {
     // 파일 저장 및 URL 반환 예시 (구현 필요)
     private String saveFileAndGetUrl(MultipartFile file) {
         String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        String filepath = "/upload/profile/" + filename;
+        String filepath = "/profile/" + filename;
 
         try {
             File dest = new File(uploadBasePath + filepath);

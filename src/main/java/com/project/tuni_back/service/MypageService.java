@@ -50,6 +50,7 @@ public class MypageService {
 	    return result;
 	}
 	 */
+	// 사용자 정보 불러오기
 	public Map<String, Object> getId(String userId) {
 		UserVO user = userMapper.findByUserId(userId);
 		if (user == null) {
@@ -82,6 +83,15 @@ public class MypageService {
 		return result;
 	}
 
+	// 프로필 불러오기
+	public String getProfile(String userId) {
+	    UserVO user = userMapper.findByUserId(userId);
+	    if (user == null) {
+	        throw new IllegalArgumentException("사용자가 없습니다.");
+	    }
+	    return user.getProfileImg();
+	}
+	
 	public void updateUserId(String oldUserId, String newUserId) {
 		// 중복 체크
 		UserVO existingUser = userMapper.findByUserId(newUserId);
