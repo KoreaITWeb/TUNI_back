@@ -24,5 +24,17 @@
 	   	DELETE FROM IMAGEFILE
 	   	WHERE UUID = #{uuid}
    </delete>
-   
+   <select id="findByUuid" resultType="com.project.tuni_back.bean.vo.ImageFileVO">
+	    SELECT * FROM IMAGEFILE WHERE UUID = #{uuid}
+   </select>
+	<update id="clearRepresentativeFlag">
+	    UPDATE IMAGEFILE
+	    SET IS_REPRESENTATIVE = FALSE
+	    WHERE BOARD_ID = #{boardId} AND IS_REPRESENTATIVE = TRUE
+	</update>
+	<update id="setRepresentativeFlag">
+	    UPDATE IMAGEFILE
+	    SET IS_REPRESENTATIVE = TRUE
+	    WHERE UUID = #{uuid}
+	</update>
 </mapper>
