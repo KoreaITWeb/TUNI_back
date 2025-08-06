@@ -13,4 +13,7 @@ public interface ImageFileMapper {
    public int updateImageFile(ImageFileVO vo);
    public int deleteByBoardId(Long boardId);
    public int deleteByUuid(String uuid);
+   public ImageFileVO findByUuid(String uuid);
+   public void clearRepresentativeFlag(Long boardId);
+   public void setRepresentativeFlag(String uuid);
 }

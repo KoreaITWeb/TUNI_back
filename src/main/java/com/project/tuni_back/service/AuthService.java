@@ -163,7 +163,7 @@ public class AuthService {
     // 파일 저장 및 URL 반환 예시 (구현 필요)
     private String saveFileAndGetUrl(MultipartFile file) {
         String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        String filepath = "/upload/profile/" + filename;
+        String filepath = "/profile/" + filename;
 
         try {
             File dest = new File(uploadBasePath + filepath);
