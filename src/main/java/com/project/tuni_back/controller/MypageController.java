@@ -13,12 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.tuni_back.bean.vo.BoardVO;
+import com.project.tuni_back.bean.vo.UserVO;
 import com.project.tuni_back.mapper.UserMapper;
 import com.project.tuni_back.service.MypageService;
 
@@ -48,7 +50,7 @@ public class MypageController {
 	}
 
 	// 프로필 불러오기 호출
-	@GetMapping(value="/profile/{userId}", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@GetMapping(value="/{userId}/profile", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
 	public ResponseEntity<byte[]> getProfileImage(@PathVariable("userId") String userId) {
 	    try {
 	        String relativePath = mypageService.getProfile(userId);
@@ -72,7 +74,31 @@ public class MypageController {
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 	    }
 	}
+	
+	@PostMapping(value="/{userId}/profile", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	public ResponseEntity<byte[]> getProfileImage1(@PathVariable("userId") String userId) {
+	    try {
+	        String relativePath = mypageService.getProfile(userId);
+	        String fullPath = uploadDir + relativePath.replace('/', File.separatorChar);
 
+	        File file = new File(fullPath);
+	        if (!file.exists()) {
+	            return ResponseEntity.notFound().build();
+	        }
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.add("Content-Type", Files.probeContentType(file.toPath()));
+	        byte[] bytes = FileCopyUtils.copyToByteArray(file);
+
+	        return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
+
+	    } catch (IllegalArgumentException e) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
+	}
 	/*
 	@GetMapping(value="/display", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<byte[]> getImage(@RequestParam("fileName") String fileName) {
@@ -96,13 +122,26 @@ public class MypageController {
 //		
 //	}
 	
-    @PutMapping("/mypage")
-    public ResponseEntity<?> updateUserId(
-            @RequestParam String oldUserId, 
-            @RequestParam String newUserId) {
-    	mypageService.updateUserId(oldUserId, newUserId);
-        return ResponseEntity.ok().build();
-    }
+	@PutMapping("/{userId}/update")
+	public ResponseEntity<String> updateProfile(
+		@PathVariable("userId") String oldUserId,
+	    @RequestBody UserVO user) {
+	    try {
+	        System.out.println("oldUserId = " + oldUserId);
+	        System.out.println("newUserId = " + user.getUserId());
+	        System.out.println("profileImg = " + user.getProfileImg());
+
+	        mypageService.updateUserProfile(oldUserId, user.getUserId(), user.getProfileImg());
+	        return ResponseEntity.ok("프로필이 성공적으로 변경되었습니다.");
+	    } catch (IllegalArgumentException e) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+	    } catch (RuntimeException e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+	    }
+	}
+	
+	
+
     
     @GetMapping("/{userId}/likes")
     public ResponseEntity<List<BoardVO>> getLikedBoards(@PathVariable String userId) {

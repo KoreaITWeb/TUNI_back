@@ -24,10 +24,12 @@
 	    JOIN school s ON u.school_id = s.school_id
 	    WHERE u.user_id = #{userId}
 	</select>
-	<update id="updateUserId" parameterType="map">
-	    UPDATE users
-	    SET user_id = #{newUserId}
-	    WHERE user_id = #{oldUserId}
+	<update id="updateUserProfile" parameterType="com.project.tuni_back.bean.vo.UserVO">
+	  UPDATE users
+      SET 
+        userId = #{userId},
+        profileImg = #{profileImg}
+      WHERE userId = #{oldUserId}       <!-- 조건도 userId로 해야 하는데... -->
 	</update>
 
 	

@@ -92,14 +92,23 @@ public class MypageService {
 	    return user.getProfileImg();
 	}
 	
-	public void updateUserId(String oldUserId, String newUserId) {
-		// 중복 체크
-		UserVO existingUser = userMapper.findByUserId(newUserId);
-		if (existingUser != null) {
-			throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
-		}
-		userMapper.updateUserId(oldUserId, newUserId);
+	// 프로필 수정
+	public void updateUserProfile(String oldUserId, String newUserId, String newProfileImg) {
+	    UserVO existingUser = userMapper.findByUserId(newUserId);
+	    if (existingUser != null) {
+	        throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+	    }
+
+	    UserVO user = new UserVO();
+	    user.setUserId(newUserId);
+	    user.setProfileImg(newProfileImg);
+
+	    int updatedRows = userMapper.updateUserProfile(oldUserId, user);
+	    if (updatedRows == 0) {
+	        throw new RuntimeException("사용자 정보 변경에 실패했습니다.");
+	    }
 	}
+
 
 	public List<BoardVO> getLikedBoardsByUser(String userId) {
 		List<Long> likedBoardId = likesMapper.findBoardIdsByUserId(userId);
