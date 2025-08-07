@@ -90,7 +90,7 @@ public class MypageService {
 	public String getProfile(String userId) {
 	    UserVO user = userMapper.findByUserId(userId);
 	    if (user == null) {
-	        throw new IllegalArgumentException("사용자가 없습니다2.");
+	        throw new IllegalArgumentException("사용자가 없습니다.");
 	    }
 	    return user.getProfileImg();
 	}
