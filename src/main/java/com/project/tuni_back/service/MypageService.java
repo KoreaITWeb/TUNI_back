@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.project.tuni_back.bean.vo.BoardVO;
 import com.project.tuni_back.bean.vo.UniversityVO;
 import com.project.tuni_back.bean.vo.UserVO;
+import com.project.tuni_back.dto.JwtTokenDto;
+import com.project.tuni_back.jwt.JwtTokenProvider;
 import com.project.tuni_back.mapper.BoardMapper;
 import com.project.tuni_back.mapper.LikesMapper;
 import com.project.tuni_back.mapper.UniversityMapper;
@@ -27,6 +29,7 @@ public class MypageService {
 	@Autowired
 	private BoardService boardService;
 
+	private final JwtTokenProvider jwtTokenProvider;
 	private final UniversityMapper universityMapper;
 	private final UserMapper userMapper;
 	private final BoardMapper boardMapper;
@@ -87,27 +90,41 @@ public class MypageService {
 	public String getProfile(String userId) {
 	    UserVO user = userMapper.findByUserId(userId);
 	    if (user == null) {
-	        throw new IllegalArgumentException("사용자가 없습니다.");
+	        throw new IllegalArgumentException("사용자가 없습니다2.");
 	    }
 	    return user.getProfileImg();
 	}
 	
 	// 프로필 수정
-	public void updateUserProfile(String oldUserId, String newUserId, String newProfileImg) {
+	public JwtTokenDto updateUserProfile(String oldUserId, String newUserId, String newProfileImg) {
+	    System.out.println("[DEBUG] oldUserId = " + oldUserId);
+	    System.out.println("[DEBUG] newUserId = " + newUserId);
+	    System.out.println("[DEBUG] newProfileImg = " + newProfileImg);
+
 	    UserVO existingUser = userMapper.findByUserId(newUserId);
-	    if (existingUser != null) {
+
+	    if (existingUser != null && !existingUser.getUserId().equals(oldUserId)) {
 	        throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
 	    }
 
-	    UserVO user = new UserVO();
-	    user.setUserId(newUserId);
-	    user.setProfileImg(newProfileImg);
-
-	    int updatedRows = userMapper.updateUserProfile(oldUserId, user);
+	    int updatedRows = userMapper.updateUserProfile(oldUserId, newUserId, newProfileImg);
+	    System.out.println("[DEBUG] update 결과 updatedRows = " + updatedRows);
 	    if (updatedRows == 0) {
 	        throw new RuntimeException("사용자 정보 변경에 실패했습니다.");
 	    }
+
+	    int updatedCount = boardMapper.updateBoardUserId(oldUserId, newUserId);
+	    System.out.println("업데이트된 게시글 수: " + updatedCount);
+
+	    // 변경된 사용자 정보 재조회
+	    UserVO updatedUser = userMapper.findByUserId(newUserId);
+
+	    // JWT 토큰 생성 (jwtTokenProvider는 서비스 내 의존성으로 주입되어 있어야 함)
+	    JwtTokenDto newToken = jwtTokenProvider.generateToken(updatedUser);
+
+	    return newToken;
 	}
+
 
 
 	public List<BoardVO> getLikedBoardsByUser(String userId) {

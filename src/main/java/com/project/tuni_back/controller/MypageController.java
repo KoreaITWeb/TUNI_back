@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.tuni_back.bean.vo.BoardVO;
 import com.project.tuni_back.bean.vo.UserVO;
+import com.project.tuni_back.dto.JwtTokenDto;
 import com.project.tuni_back.mapper.UserMapper;
 import com.project.tuni_back.service.MypageService;
 
@@ -123,22 +124,28 @@ public class MypageController {
 //	}
 	
 	@PutMapping("/{userId}/update")
-	public ResponseEntity<String> updateProfile(
-		@PathVariable("userId") String oldUserId,
+	public ResponseEntity<?> updateProfile(
+	    @PathVariable("userId") String oldUserId,
 	    @RequestBody UserVO user) {
 	    try {
 	        System.out.println("oldUserId = " + oldUserId);
 	        System.out.println("newUserId = " + user.getUserId());
 	        System.out.println("profileImg = " + user.getProfileImg());
 
-	        mypageService.updateUserProfile(oldUserId, user.getUserId(), user.getProfileImg());
-	        return ResponseEntity.ok("프로필이 성공적으로 변경되었습니다.");
+	        JwtTokenDto newToken = mypageService.updateUserProfile(oldUserId, user.getUserId(), user.getProfileImg());
+
+	        System.out.println("[DEBUG] 새 토큰 발급 완료");
+
+	        return ResponseEntity.ok(newToken);
 	    } catch (IllegalArgumentException e) {
+	        System.err.println("[ERROR] " + e.getMessage());
 	        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
 	    } catch (RuntimeException e) {
+	        System.err.println("[ERROR] " + e.getMessage());
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 	    }
 	}
+
 	
 	
 

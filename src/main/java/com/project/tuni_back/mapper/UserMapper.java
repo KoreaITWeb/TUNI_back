@@ -18,7 +18,7 @@ public interface UserMapper {
     // 닉네임으로 사용자 찾는 메소드
     UserVO findByUserId(String userId);
     
-    int updateUserProfile(@Param("oldUserId") String oldUserId, @Param("user") UserVO user);
+    int updateUserProfile(@Param("oldUserId") String oldUserId, @Param("userId") String userId, @Param("profileImg") String profileImg);
 
 
 }
