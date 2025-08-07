@@ -87,6 +87,11 @@
 	    SET VIEWS = 0
 	    WHERE BOARD_ID = #{boardId}
 	</update>
+	<update id="updateBoardUserId">
+	  UPDATE BOARD
+	  SET USER_ID = #{newUserId}
+	  WHERE USER_ID = #{oldUserId}
+	</update>
 	<select id="getLatestProducts" resultType="com.project.tuni_back.bean.vo.BoardVO">
 	    SELECT
 	        B.BOARD_ID, B.TITLE, B.PRICE, B.REGDATE, S.NAME AS schoolName,

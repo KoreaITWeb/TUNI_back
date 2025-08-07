@@ -24,4 +24,5 @@ public interface BoardMapper {
 	int resetViews(Long boardId);
 	public List<BoardVO> getLatestProducts();
 	public List<BoardVO> getLatestProductsBySchool(Long schoolId);
+	int updateBoardUserId(@Param("oldUserId") String oldUserId, @Param("newUserId") String newUserId);
 }

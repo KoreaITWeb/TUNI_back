@@ -24,10 +24,12 @@
 	    JOIN school s ON u.school_id = s.school_id
 	    WHERE u.user_id = #{userId}
 	</select>
-	<update id="updateUserId" parameterType="map">
-	    UPDATE users
-	    SET user_id = #{newUserId}
-	    WHERE user_id = #{oldUserId}
+	<update id="updateUserProfile">
+	  UPDATE users
+	  SET 
+	    user_id = #{userId},
+	    profile_img = #{profileImg}
+	  WHERE user_id = #{oldUserId}
 	</update>
 
 	
