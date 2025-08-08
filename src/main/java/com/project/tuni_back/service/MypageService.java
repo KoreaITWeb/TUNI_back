@@ -26,114 +26,96 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MypageService {
 
-	@Autowired
-	private BoardService boardService;
+   @Autowired
+   private BoardService boardService;
 
-	private final JwtTokenProvider jwtTokenProvider;
-	private final UniversityMapper universityMapper;
-	private final UserMapper userMapper;
-	private final BoardMapper boardMapper;
-	private final LikesMapper likesMapper;
-	/*
-	public Map<String, Object> getId(String userId) {
-	    UserVO user = userMapper.findByUserId(userId);
-	    if (user == null) {
-	        throw new IllegalArgumentException("사용자가 없습니다.");
-	    }
-	    UniversityVO university = universityMapper.findById((long) user.getSchoolId());
+   private final JwtTokenProvider jwtTokenProvider;
+   private final UniversityMapper universityMapper;
+   private final UserMapper userMapper;
+   private final BoardMapper boardMapper;
+   private final LikesMapper likesMapper;
+   
+   // 사용자 정보 불러오기
+   public Map<String, Object> getId(String userId) {
+      UserVO user = userMapper.findByUserId(userId);
+      if (user == null) {
+         throw new IllegalArgumentException("사용자가 없습니다.");
+      }
 
-	    Long schoolId = (long) user.getSchoolId();
-	    Map<String, Object> productList = boardService.getProductsByUserId(schoolId, userId);
+      UniversityVO university = universityMapper.findById((long) user.getSchoolId());
 
-	    Map<String, Object> result = new HashMap<>();
-	    result.put("user", user);
-	    result.put("university", university);
-	    result.put("productList", productList.get("list"));
+      Long schoolId = (long) user.getSchoolId();
 
-	    return result;
-	}
-	 */
-	// 사용자 정보 불러오기
-	public Map<String, Object> getId(String userId) {
-		UserVO user = userMapper.findByUserId(userId);
-		if (user == null) {
-			throw new IllegalArgumentException("사용자가 없습니다.");
-		}
+      // 👇 여기 수정: 반환 타입은 List<BoardVO>
+      List<BoardVO> productList = boardService.getProductListByUserId(schoolId, userId);
 
-		UniversityVO university = universityMapper.findById((long) user.getSchoolId());
+      long saleCount = productList.stream()
+            .filter(p -> "SALE".equalsIgnoreCase(p.getSaleStatus()))
+            .count();
 
-		Long schoolId = (long) user.getSchoolId();
+      long soldCount = productList.stream()
+            .filter(p -> "SOLD".equalsIgnoreCase(p.getSaleStatus()))
+            .count();
 
-		// 👇 여기 수정: 반환 타입은 List<BoardVO>
-		List<BoardVO> productList = boardService.getProductListByUserId(schoolId, userId);
+      // 👇 결과를 하나의 Map으로 묶어서 반환
+      Map<String, Object> result = new HashMap<>();
+      result.put("user", user);
+      result.put("university", university);
+      result.put("productList", productList);  // List 그대로 넣으면 됨
+      result.put("saleCount", saleCount);     // 판매중
+       result.put("soldCount", soldCount); 
 
-		long saleCount = productList.stream()
-				.filter(p -> "SALE".equalsIgnoreCase(p.getSaleStatus()))
-				.count();
+      return result;
+   }
 
-		long soldCount = productList.stream()
-				.filter(p -> "SOLD".equalsIgnoreCase(p.getSaleStatus()))
-				.count();
+   // 프로필 불러오기
+   public String getProfile(String userId) {
+       UserVO user = userMapper.findByUserId(userId);
+       if (user == null) {
+           throw new IllegalArgumentException("사용자가 없습니다.");
+       }
+       return user.getProfileImg();
+   }
+   
+   // 프로필 수정
+   public JwtTokenDto updateUserProfile(String oldUserId, String newUserId, String newProfileImg) {
+       System.out.println("[DEBUG] oldUserId = " + oldUserId);
+       System.out.println("[DEBUG] newUserId = " + newUserId);
+       System.out.println("[DEBUG] newProfileImg = " + newProfileImg);
 
-		// 👇 결과를 하나의 Map으로 묶어서 반환
-		Map<String, Object> result = new HashMap<>();
-		result.put("user", user);
-		result.put("university", university);
-		result.put("productList", productList);  // List 그대로 넣으면 됨
-		result.put("saleCount", saleCount);     // 판매중
-	    result.put("soldCount", soldCount); 
+       UserVO existingUser = userMapper.findByUserId(newUserId);
 
-		return result;
-	}
+       if (existingUser != null && !existingUser.getUserId().equals(oldUserId)) {
+           throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+       }
 
-	// 프로필 불러오기
-	public String getProfile(String userId) {
-	    UserVO user = userMapper.findByUserId(userId);
-	    if (user == null) {
-	        throw new IllegalArgumentException("사용자가 없습니다2.");
-	    }
-	    return user.getProfileImg();
-	}
-	
-	// 프로필 수정
-	public JwtTokenDto updateUserProfile(String oldUserId, String newUserId, String newProfileImg) {
-	    System.out.println("[DEBUG] oldUserId = " + oldUserId);
-	    System.out.println("[DEBUG] newUserId = " + newUserId);
-	    System.out.println("[DEBUG] newProfileImg = " + newProfileImg);
+       int updatedRows = userMapper.updateUserProfile(oldUserId, newUserId, newProfileImg);
+       System.out.println("[DEBUG] update 결과 updatedRows = " + updatedRows);
+       if (updatedRows == 0) {
+           throw new RuntimeException("사용자 정보 변경에 실패했습니다.");
+       }
 
-	    UserVO existingUser = userMapper.findByUserId(newUserId);
+       int updatedCount = boardMapper.updateBoardUserId(oldUserId, newUserId);
+       System.out.println("업데이트된 게시글 수: " + updatedCount);
 
-	    if (existingUser != null && !existingUser.getUserId().equals(oldUserId)) {
-	        throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
-	    }
+       // 변경된 사용자 정보 재조회
+       UserVO updatedUser = userMapper.findByUserId(newUserId);
 
-	    int updatedRows = userMapper.updateUserProfile(oldUserId, newUserId, newProfileImg);
-	    System.out.println("[DEBUG] update 결과 updatedRows = " + updatedRows);
-	    if (updatedRows == 0) {
-	        throw new RuntimeException("사용자 정보 변경에 실패했습니다.");
-	    }
+       // JWT 토큰 생성 (jwtTokenProvider는 서비스 내 의존성으로 주입되어 있어야 함)
+       JwtTokenDto newToken = jwtTokenProvider.generateToken(updatedUser);
 
-	    int updatedCount = boardMapper.updateBoardUserId(oldUserId, newUserId);
-	    System.out.println("업데이트된 게시글 수: " + updatedCount);
-
-	    // 변경된 사용자 정보 재조회
-	    UserVO updatedUser = userMapper.findByUserId(newUserId);
-
-	    // JWT 토큰 생성 (jwtTokenProvider는 서비스 내 의존성으로 주입되어 있어야 함)
-	    JwtTokenDto newToken = jwtTokenProvider.generateToken(updatedUser);
-
-	    return newToken;
-	}
+       return newToken;
+   }
 
 
 
-	public List<BoardVO> getLikedBoardsByUser(String userId) {
-		List<Long> likedBoardId = likesMapper.findBoardIdsByUserId(userId);
-		if (likedBoardId == null || likedBoardId.isEmpty()) {
-			return Collections.emptyList();
-		}
-		return boardMapper.findBoardsById(likedBoardId);
-	}
+   public List<BoardVO> getLikedBoardsByUser(String userId) {
+      List<Long> likedBoardId = likesMapper.findBoardIdsByUserId(userId);
+      if (likedBoardId == null || likedBoardId.isEmpty()) {
+         return Collections.emptyList();
+      }
+      return boardMapper.findBoardsById(likedBoardId);
+   }
 
 
 }
