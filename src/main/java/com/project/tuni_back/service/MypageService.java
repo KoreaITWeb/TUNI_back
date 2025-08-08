@@ -34,25 +34,7 @@ public class MypageService {
 	private final UserMapper userMapper;
 	private final BoardMapper boardMapper;
 	private final LikesMapper likesMapper;
-	/*
-	public Map<String, Object> getId(String userId) {
-	    UserVO user = userMapper.findByUserId(userId);
-	    if (user == null) {
-	        throw new IllegalArgumentException("사용자가 없습니다.");
-	    }
-	    UniversityVO university = universityMapper.findById((long) user.getSchoolId());
-
-	    Long schoolId = (long) user.getSchoolId();
-	    Map<String, Object> productList = boardService.getProductsByUserId(schoolId, userId);
-
-	    Map<String, Object> result = new HashMap<>();
-	    result.put("user", user);
-	    result.put("university", university);
-	    result.put("productList", productList.get("list"));
-
-	    return result;
-	}
-	 */
+	
 	// 사용자 정보 불러오기
 	public Map<String, Object> getId(String userId) {
 		UserVO user = userMapper.findByUserId(userId);

@@ -36,15 +36,10 @@ public class MypageController {
 
 	private final MypageService mypageService;
 	private final UserMapper userMapper;
-	// 업로드된 이미지 저장 경로
-	//private final String uploadDir = "C:\\upload\\tuni"; 
+	
 	@Value("${spring.servlet.multipart.location}")  // application.yml의 경로 주입
 	private String uploadPath;
-	//	@GetMapping("/{userId}")
-	//    public ResponseEntity<UserVO> getUserId(@PathVariable("userId") String userId) {
-	//        UserVO user = mypageService.getUserByUserId(userId);
-	//        return ResponseEntity.ok(user);
-	//    }
+	
 
 	// 사용자 정보 불러오기 호출
 	@GetMapping("/{userId}")
