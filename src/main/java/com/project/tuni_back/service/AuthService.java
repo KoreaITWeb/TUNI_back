@@ -83,9 +83,11 @@ public class AuthService {
         }
         
         // 5. 검증 통과 시, 코드 발송 로직 호출
-        // sendCodeToEmail(email);
-        String verificationCode = "123456";
-        redisService.setVerificationCode(email, verificationCode);
+        sendCodeToEmail(email);
+        
+        // 5번 지우고 아래 코드 활성화 시 이메일 전송 x, 코드 123456 고정
+        //String verificationCode = "123456";
+        //redisService.setVerificationCode(email, verificationCode);
     }
 	
     // 코드 검증
